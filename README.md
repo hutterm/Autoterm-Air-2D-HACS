@@ -24,4 +24,4 @@ This custom integration allows Home Assistant to communicate with an **Autoterm 
 2. Restart Home Assistant.
 
 ## Support
-For issues, please open a ticket on [GitHub Issues](https://github.com/your-username/homeassistant-autoterm/issues).
+For issues, please open a ticket on [GitHub Issues](https://github.com/hutterm/Autoterm-Air-2D-HACS/issues).

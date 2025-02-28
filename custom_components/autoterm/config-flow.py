@@ -15,7 +15,7 @@ from .const import DOMAIN, CONF_SERIAL_PORT, DEFAULT_NAME
 
 _LOGGER = logging.getLogger(__name__)
 
-class AutotermFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
+class AutotermConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     """Handle a config flow for Autoterm."""
 
     VERSION = 1
