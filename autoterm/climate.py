@@ -85,3 +85,110 @@ class AutotermClimate(ClimateEntity):
         return HVACMode.HEAT
         
     @property
+    def hvac_action(self) -> Optional[str]:
+        """Return the current running hvac operation if supported."""
+        control = self._device.get_entity_state("control")
+        if control == "Aus":
+            return HVACAction.OFF
+        elif control == "Nur Ventilator":
+            return HVACAction.IDLE
+        return HVACAction.HEATING
+    
+    @property
+    def target_temperature(self) -> Optional[float]:
+        """Return the temperature we try to reach."""
+        return self._device.get_entity_state("temperature_target")
+    
+    async def async_set_temperature(self, **kwargs) -> None:
+        """Set new target temperature."""
+        temperature = kwargs.get(ATTR_TEMPERATURE)
+        await self._device.set_temperature(temperature)
+
+    async def async_set_hvac_mode(self, hvac_mode: HVACMode) -> None:
+        """
+        Set new operation mode.
+        """
+        if hvac_mode == HVACMode.OFF:
+            await self._device.set_control("Aus")
+        elif hvac_mode == HVACMode.FAN_ONLY:
+            await self._device.set_control("Nur Ventilator")
+        else:
+            await self._device.set_control("Heizen")
+
+    @property
+    def supported_features(self) -> int:
+        """Return the list of supported features."""
+        return self._attr_supported_features
+    
+    @property
+    def min_temp(self) -> float:
+        """Return the minimum temperature."""
+        return self._attr_min_temp
+    
+    @property
+    def max_temp(self) -> float:
+        """Return the maximum temperature."""
+        return self._attr_max_temp
+    
+    @property
+    def target_temperature_step(self) -> Optional[float]:
+        """Return the supported step of target temperature."""
+        return self._attr_target_temperature_step
+    
+    @property
+    def device_info(self) -> Dict[str, Any]:
+        """Return device information about this Autoterm device."""
+        return self._attr_device_info
+    
+    @property
+    def unique_id(self) -> Optional[str]:
+        """Return a unique ID."""
+        return self._attr_unique_id
+    
+    @property
+    def name(self) -> Optional[str]:
+        """Return the name of the entity."""
+        return self._attr_name
+    
+    @property
+    def temperature_unit(self) -> str:
+        """Return the unit of measurement."""
+        return self._attr_temperature_unit
+    
+    @property
+    def hvac_modes(self) -> List[str]:
+        """Return the list of available operation modes."""
+        return self._attr_hvac_modes
+    
+    @property
+    def device_state_attributes(self) -> Dict[str, Any]:
+        """Return the optional state attributes."""
+        return {
+            "version": self._device.version
+        }
+    
+    @property
+    def state(self) -> Optional[str]:
+        """Return the current state."""
+        return self._device.get_entity_state("control")
+    
+    @property
+    def icon(self) -> Optional[str]:
+        """Return the icon to use in the frontend."""
+        return "mdi:radiator"
+    
+    @property
+    def available(self) -> bool:
+        """Return if entity is available."""
+        return self._device.available
+    
+    @property
+    def should_poll(self) -> bool:
+        """Return the polling state."""
+        return False
+    
+    @property
+    def device_class(self) -> Optional[str]:
+        """Return the device class of the entity."""
+        return "temperature"
+    
