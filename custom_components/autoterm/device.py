@@ -212,6 +212,8 @@ class AutotermDevice:
                 
                 # Wait for a moment to ensure the message is sent
                 await asyncio.sleep(0.1)
+
+                _LOGGER.debug(f"Sent message: {key}")
                 
                 return True
             except Exception as ex:
@@ -319,6 +321,8 @@ class AutotermDevice:
             self._notify_state_update("fan_rpm_actual")
             self._notify_state_update("frequency_fuel_pump")
             self._notify_state_update("control")
+
+            _LOGGER.debug(f"Status: {self.status_data}")
             
         except Exception as ex:
             _LOGGER.error(f"{ERROR_PROCESS_STATUS_MESSAGE}{ex}")
@@ -347,6 +351,7 @@ class AutotermDevice:
             self._notify_state_update("level")
             self._notify_state_update("power")
             
+            _LOGGER.debug(f"Settings: {self.settings_data}")
         except Exception as ex:
             _LOGGER.error(f"{ERROR_PROCESS_SETTINGS_MESSAGE}{ex}")
 
@@ -362,6 +367,8 @@ class AutotermDevice:
             
             # Notify entities of state changes
             self._notify_state_update("temperature_panel")
+
+            _LOGGER.debug(f"Temperature: {self.temperature_data}")
             
         except Exception as ex:
             _LOGGER.error(f"{ERROR_PROCESS_TEMPERATURE_MESSAGE}{ex}")

@@ -24,6 +24,7 @@ SENSOR_TYPES = {
     "frequency_fuel_pump": ("Fuel Pump Frequency", "Hz", SensorDeviceClass.FREQUENCY , SensorStateClass.MEASUREMENT),
     "status": ("Status", None, None, None),
     "status_code": ("Status Code", None, None, None),
+    "work_time": ("Work Time", "h", SensorDeviceClass.DURATION, SensorStateClass.MEASUREMENT),
 }
 
 async def async_setup_entry(
