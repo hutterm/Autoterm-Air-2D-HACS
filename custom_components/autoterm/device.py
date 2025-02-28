@@ -368,7 +368,7 @@ class AutotermDevice:
     def _notify_state_update(self, entity_key: str) -> None:
         """Notify an entity of a state update."""
         signal = SIGNAL_STATE_UPDATED.format(f"{self.entry_id}_{entity_key}")
-        async_dispatcher_send(self.loop, signal)
+        async_dispatcher_send(signal)
 
     # ---- Control methods ----
     
