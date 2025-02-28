@@ -15,11 +15,15 @@ from .device import SIGNAL_STATE_UPDATED, AutotermDevice
 _LOGGER = logging.getLogger(__name__)
 
 SENSOR_TYPES = {
-    "temperature_intake": ("Intake Temperature", UnitOfTemperature.CELSIUS, SensorDeviceClass.TEMPERATURE),
-    "temperature_sensor": ("External Sensor Temperature", UnitOfTemperature.CELSIUS, SensorDeviceClass.TEMPERATURE),
-    "temperature_heat_exchanger": ("Heat Exchanger Temperature", UnitOfTemperature.CELSIUS, SensorDeviceClass.TEMPERATURE),
-    "voltage": ("Voltage", UnitOfElectricPotential.VOLT, SensorDeviceClass.VOLTAGE),
-    "fan_rpm_actual": ("Fan RPM", None, None),
+    "temperature_intake": ("Intake Temperature", UnitOfTemperature.CELSIUS, SensorDeviceClass.TEMPERATURE, SensorStateClass.MEASUREMENT),
+    "temperature_sensor": ("External Sensor Temperature", UnitOfTemperature.CELSIUS, SensorDeviceClass.TEMPERATURE, SensorStateClass.MEASUREMENT),
+    "temperature_heat_exchanger": ("Heat Exchanger Temperature", UnitOfTemperature.CELSIUS, SensorDeviceClass.TEMPERATURE, SensorStateClass.MEASUREMENT),
+    "temperature_panel": ("Control Panel Temperature", UnitOfTemperature.CELSIUS, SensorDeviceClass.TEMPERATURE, SensorStateClass.MEASUREMENT),
+    "voltage": ("Voltage", UnitOfElectricPotential.VOLT, SensorDeviceClass.VOLTAGE, SensorStateClass.MEASUREMENT),
+    "fan_rpm_actual": ("Fan RPM", None, None, SensorStateClass.MEASUREMENT),
+    "frequency_fuel_pump": ("Fuel Pump Frequency", "Hz", SensorDeviceClass.FREQUENCY , SensorStateClass.MEASUREMENT),
+    "status": ("Status", None, None, None),
+    "status_code": ("Status Code", None, None, None),
 }
 
 async def async_setup_entry(
@@ -41,8 +45,7 @@ class AutotermSensor(SensorEntity):
         self._entry_id = entry_id
         self._key = key
         self._attr_unique_id = f"{entry_id}_{key}"
-        self._attr_name, self._attr_native_unit_of_measurement, self._attr_device_class = SENSOR_TYPES[key]
-        self._attr_state_class = SensorStateClass.MEASUREMENT
+        self._attr_name, self._attr_native_unit_of_measurement, self._attr_device_class,self._attr_state_class  = SENSOR_TYPES[key]
         self._attr_device_info = {
             "identifiers": {(DOMAIN, entry_id)},
             "name": "Autoterm Air 2D",
