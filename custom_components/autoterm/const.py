@@ -81,9 +81,9 @@ MODE_OPTIONS = {
 
 # Control options
 CONTROL_OPTIONS = {
-    "off": "Aus",
-    "heat": "Heizen",
-    "fan_only": "Nur Ventilator"
+    "off": "hvac_mode.off",
+    "heat": "hvac_mode.heat",
+    "fan_only": "hvac_mode.fan_only"
 }
 
 # Reverse lookup for control options
