@@ -23,6 +23,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     hass.data.setdefault(DOMAIN, {})
     
     device = AutotermDevice(
+        hass,
         entry.data[CONF_SERIAL_PORT],
         hass.loop,
         entry.entry_id

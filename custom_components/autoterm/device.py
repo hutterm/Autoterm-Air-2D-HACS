@@ -35,8 +35,9 @@ SIGNAL_STATE_UPDATED = "autoterm_state_updated_{}"
 class AutotermDevice:
     """Representation of an Autoterm heater device."""
 
-    def __init__(self, port: str, loop: asyncio.AbstractEventLoop, entry_id: str):
+    def __init__(self, hass, port: str, loop: asyncio.AbstractEventLoop, entry_id: str):
         """Initialize the Autoterm device."""
+        self.hass = hass
         self.port = port
         self.loop = loop
         self.entry_id = entry_id
@@ -368,7 +369,7 @@ class AutotermDevice:
     def _notify_state_update(self, entity_key: str) -> None:
         """Notify an entity of a state update."""
         signal = SIGNAL_STATE_UPDATED.format(f"{self.entry_id}_{entity_key}")
-        async_dispatcher_send(signal)
+        async_dispatcher_send(self.hass, signal)
 
     # ---- Control methods ----
     
