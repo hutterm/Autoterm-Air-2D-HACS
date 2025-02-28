@@ -1,35 +1,55 @@
+"""The Autoterm Heater integration."""
+import asyncio
 import logging
-import voluptuous as vol
+
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
-from homeassistant.const import CONF_PORT
-from .autoterm import AutotermHeater
+from homeassistant.const import Platform
 
-DOMAIN = "autoterm"
+from .const import DOMAIN, CONF_SERIAL_PORT
+from .device import AutotermDevice
+
 _LOGGER = logging.getLogger(__name__)
 
-CONFIG_SCHEMA = vol.Schema(
-    {
-        DOMAIN: vol.Schema({
-            vol.Required(CONF_PORT): str
-        })
-    },
-    extra=vol.ALLOW_EXTRA,
-)
+PLATFORMS = [
+    Platform.CLIMATE,
+    Platform.SENSOR,
+    Platform.SELECT,
+    Platform.NUMBER,
+]
 
-def setup(hass: HomeAssistant, config: dict):
-    """Set up the Autoterm integration."""
-    port = config[DOMAIN].get(CONF_PORT)
+async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+    """Set up Autoterm from a config entry."""
+    hass.data.setdefault(DOMAIN, {})
     
-    heater = AutotermHeater(port)
-    heater.connect()
-    hass.data[DOMAIN] = heater
+    device = AutotermDevice(
+        entry.data[CONF_SERIAL_PORT],
+        hass.loop,
+        entry.entry_id
+    )
+    
+    try:
+        await device.connect()
+    except Exception as ex:
+        _LOGGER.error(f"Failed to connect to Autoterm device: {ex}")
+        return False
+    
+    hass.data[DOMAIN][entry.entry_id] = device
+    
+    await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
+    
+    entry.async_on_unload(entry.add_update_listener(update_listener))
     
     return True
 
-def unload_entry(hass: HomeAssistant, entry: ConfigEntry):
-    """Unload the Autoterm integration."""
-    heater = hass.data.pop(DOMAIN, None)
-    if heater:
-        heater.disconnect()
-    return True
+async def update_listener(hass: HomeAssistant, entry: ConfigEntry) -> None:
+    """Handle options update."""
+    await hass.config_entries.async_reload(entry.entry_id)
+
+async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+    """Unload a config entry."""
+    if unload_ok := await hass.config_entries.async_unload_platforms(entry, PLATFORMS):
+        device = hass.data[DOMAIN].pop(entry.entry_id)
+        await device.disconnect()
+    
+    return unload_ok
