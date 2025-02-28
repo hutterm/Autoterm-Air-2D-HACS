@@ -1,0 +1,10 @@
+{
+    "domain": "autoterm",
+    "name": "Autoterm Heater",
+    "version": "1.0",
+    "config_flow": false,
+    "documentation": "https://github.com/your-repo/autoterm-home-assistant",
+    "dependencies": [],
+    "codeowners": ["@your-github"],
+    "requirements": ["pyserial"]
+  }

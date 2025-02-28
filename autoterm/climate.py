@@ -91,7 +91,7 @@ class AutotermClimate(ClimateEntity):
         if control == "Aus":
             return HVACAction.OFF
         elif control == "Nur Ventilator":
-            return HVACAction.IDLE
+            return HVACAction.FAN
         return HVACAction.HEATING
     
     @property
