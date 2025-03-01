@@ -1,6 +1,7 @@
 """The Autoterm Heater integration."""
 import asyncio
 import logging
+from datetime import timedelta
 
 import voluptuous as vol
 from homeassistant.helpers import config_validation as cv
@@ -9,6 +10,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.const import Platform
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
+from homeassistant.helpers.event import async_track_time_interval
 import async_timeout
 
 from .const import DOMAIN, CONF_SERIAL_PORT
