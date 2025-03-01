@@ -214,7 +214,7 @@ class AutotermDevice:
                 # Wait for a moment to ensure the message is sent
                 await asyncio.sleep(0.1)
 
-                _LOGGER.debug(f"Sent message: {key} ({payload.hex()})")
+                _LOGGER.debug(f"Sent message: {key} ({payload.hex()}) full message: {message.hex()}")
                 
                 return True
             except Exception as ex:
@@ -248,6 +248,10 @@ class AutotermDevice:
             type_str = MESSAGE_TYPES.get(type_value, f"Unknown ({type_value})")
             length = buffer[2]
             payload = buffer[5:5+length]
+            checksum = buffer[5+length:]
+            # Verify checksum
+            if checksum != self._calc_checksum(buffer[:5+length]):
+                _LOGGER.error(f"Checksum error in message: {buffer.hex()}")
             
             if type_str in ["request", "response"]:
                 id_value = buffer[4]
@@ -257,7 +261,9 @@ class AutotermDevice:
                 id_str = DIAG_MESSAGE_IDS.get(id_value, f"Unknown ({id_value})")
             else:
                 id_str = f"Unknown ({buffer[4]})"
-                
+
+            _LOGGER.debug(f"Received message: {type_str} {id_str} ({payload.hex()})")
+            
             if type_str == "response":
                 if id_str == "version":
                     await self._process_version_message(payload)

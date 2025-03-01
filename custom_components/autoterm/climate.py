@@ -72,9 +72,9 @@ class AutotermClimate(ClimateEntity):
     def hvac_mode(self) -> HVACMode:
         """Return the current HVAC mode."""
         control = self._device.get_entity_state("control")
-        if control == "Aus":
+        if control == "hvac_mode.off":
             return HVACMode.OFF
-        elif control == "Nur Ventilator":
+        elif control == "hvac_mode.heat":
             return HVACMode.FAN_ONLY
         return HVACMode.HEAT
 
@@ -84,10 +84,13 @@ class AutotermClimate(ClimateEntity):
         status = self._device.get_entity_state("status")
         if status == "Abschaltung":
             return HVACAction.OFF
-        elif status in ["Flammensensor kühlen", "Belüftung"]:
+        elif status in ["Flammensensor kühlen", "Belüftung", "Nur Ventilator", "Abkühlung"]:
             return HVACAction.FAN
-        elif status in ["Glühkerze aufwärmen", "Zündung", "Brennkammer erhitzen"]:
+        elif status in ["Glühkerze aufwärmen", "Zündung", "Zündung 2", "Brennkammer erhitzen"]:
+            return HVACAction.PREHEATING
+        elif status == "Heizvorgang":
             return HVACAction.HEATING
+        
         return HVACAction.IDLE
 
     @property
