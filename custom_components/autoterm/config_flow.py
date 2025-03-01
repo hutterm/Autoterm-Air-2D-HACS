@@ -12,7 +12,7 @@ from homeassistant.data_entry_flow import FlowResult
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers import selector
 
-from .const import DOMAIN, CONF_SERIAL_PORT, DEFAULT_NAME
+from .const import DOMAIN, CONF_SERIAL_PORT, DEFAULT_NAME, ATTR_TEMPERATURE_ENTITY
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -83,16 +83,8 @@ class AutotermConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         if user_input is not None:
             return self.async_create_entry(title="", data=user_input)
 
-        # Get all temperature sensor entities
-        temperature_entities = []
-        for entity_id in self.hass.states.async_entity_ids():
-            state = self.hass.states.get(entity_id)
-            if (
-                state and 
-                state.attributes.get("device_class") == "temperature" and
-                entity_id.startswith("sensor.")
-            ):
-                temperature_entities.append(entity_id)
+        
+        temperature_entities = self._get_temperature_entities()
 
         return self.async_show_form(
             step_id="options",
@@ -101,21 +93,20 @@ class AutotermConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             }),
         )
 
+    def async_get_options_flow(config_entry):
+        """Get the options flow for this handler."""
+        return OptionsFlowHandler(config_entry)
+    
     @staticmethod
     def _test_connection(port: str) -> None:
         """Test if the port is available."""
         try:
             ser = serial.Serial(port, 9600, timeout=1)
-            ser.close()
         except serial.SerialException:
-            raise CannotConnect
-
-
-# Also implement options flow
-@staticmethod
-def async_get_options_flow(config_entry):
-    """Get the options flow for this handler."""
-    return OptionsFlowHandler(config_entry)
+            raise CannotConnect    
+        finally:
+            if ser:
+                ser.close()
 
 class OptionsFlowHandler(config_entries.OptionsFlow):
     """Handle options flow for Autoterm integration."""
@@ -129,16 +120,7 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
         if user_input is not None:
             return self.async_create_entry(title="", data=user_input)
 
-        # Get all temperature sensor entities
-        temperature_entities = []
-        for entity_id in self.hass.states.async_entity_ids():
-            state = self.hass.states.get(entity_id)
-            if (
-                state and 
-                state.attributes.get("device_class") == "temperature" and
-                entity_id.startswith("sensor.")
-            ):
-                temperature_entities.append(entity_id)
+        temperature_entities = self._get_temperature_entities()
 
         return self.async_show_form(
             step_id="init",
@@ -152,6 +134,19 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                 ): vol.In(temperature_entities),
             }),
         )
+
+def _get_temperature_entities(self):
+    """Get all temperature sensor entities."""
+    temperature_entities = []
+    for entity_id in self.hass.states.async_entity_ids():
+        state = self.hass.states.get(entity_id)
+        if (
+            state and
+            state.attributes.get("device_class") == "temperature" and
+            entity_id.startswith("sensor.")
+        ):
+            temperature_entities.append(entity_id)
+    return temperature_entities
 
 class CannotConnect(HomeAssistantError):
     """Error to indicate we cannot connect."""

@@ -13,7 +13,7 @@ from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, Upda
 from homeassistant.helpers.event import async_track_time_interval
 import async_timeout
 
-from .const import DOMAIN, CONF_SERIAL_PORT
+from .const import DOMAIN, CONF_SERIAL_PORT, ATTR_TEMPERATURE_ENTITY, SERVICE_UPDATE_TEMPERATURE
 from .device import AutotermDevice
 
 _LOGGER = logging.getLogger(__name__)
@@ -24,11 +24,6 @@ PLATFORMS = [
     Platform.SELECT,
     Platform.NUMBER,
 ]
-
-
-# Constants for your service
-SERVICE_UPDATE_TEMPERATURE = "update_external_temperature"
-ATTR_TEMPERATURE_ENTITY = "temperature_entity_id"
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:

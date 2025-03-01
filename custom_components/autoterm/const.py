@@ -7,6 +7,11 @@ MODEL = "Air 2D"
 # Config
 CONF_SERIAL_PORT = "serial_port"
 
+
+# Constants for service
+SERVICE_UPDATE_TEMPERATURE = "update_external_temperature"
+ATTR_TEMPERATURE_ENTITY = "temperature_entity_id"
+
 # Defaults
 DEFAULT_NAME = "Autoterm Heater"
 
