@@ -158,7 +158,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         async_track_time_interval(
             hass,
             periodic_status_poll,
-            timedelta(seconds=30)
+            timedelta(seconds=5)
         )
     )
 
