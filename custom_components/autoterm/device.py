@@ -213,7 +213,7 @@ class AutotermDevice:
                 # Wait for a moment to ensure the message is sent
                 await asyncio.sleep(0.1)
 
-                _LOGGER.debug(f"Sent message: {key}")
+                _LOGGER.debug(f"Sent message: {key} ({payload.hex()})")
                 
                 return True
             except Exception as ex:
