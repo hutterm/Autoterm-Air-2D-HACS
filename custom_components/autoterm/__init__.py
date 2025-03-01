@@ -3,7 +3,7 @@ import asyncio
 import logging
 
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.core import HomeAssistant, ATTR_ENTITY_ID, CONF_ENTITY_ID
+from homeassistant.core import HomeAssistant
 from homeassistant.const import Platform
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 import async_timeout
