@@ -87,6 +87,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         device = hass.data[DOMAIN][entry.entry_id]
         temp_entity_id = call.data.get(ATTR_TEMPERATURE_ENTITY)
         
+        _LOGGER.info(f"Updating heater with temperature from {temp_entity_id}")
         if temp_entity_id:
             temp_state = hass.states.get(temp_entity_id)
             if temp_state:

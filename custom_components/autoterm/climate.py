@@ -109,10 +109,7 @@ class AutotermClimate(ClimateEntity):
     async def async_set_hvac_mode(self, hvac_mode: HVACMode) -> None:
         """Set a new HVAC mode."""
         _LOGGER.debug("Setting HVAC mode to %s", hvac_mode)
-        if hvac_mode == HVACMode.OFF:
-            await self._device.set_control("off")
-        elif hvac_mode == HVACMode.FAN_ONLY:
-            await self._device.set_control("fan_only")
-        elif hvac_mode == HVACMode.HEAT:
-            await self._device.set_control("heat")
-        self.async_write_ha_state()
+        if hvac_mode in [HVACMode.OFF, HVACMode.FAN_ONLY, HVACMode.HEAT]:
+            # send hvac mode as lower case string
+            await self._device.set_control(hvac_mode.name.lower())
+            self.async_write_ha_state()

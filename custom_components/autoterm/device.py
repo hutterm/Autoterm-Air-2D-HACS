@@ -401,6 +401,7 @@ class AutotermDevice:
 
     async def set_sensor(self, value: str) -> None:
         """Set the temperature sensor."""
+        _LOGGER.debug(f"Setting sensor to {value}")
         # Find the key for the value
         for key, val in SENSOR_OPTIONS.items():
             if val == value:
@@ -417,6 +418,7 @@ class AutotermDevice:
 
     async def set_mode(self, value: str) -> None:
         """Set the operation mode."""
+        _LOGGER.debug(f"Setting mode to {value}")
         # Find the key for the value
         for key, val in MODE_OPTIONS.items():
             if val == value:
@@ -436,15 +438,13 @@ class AutotermDevice:
             self.settings[5] = value
             await self.send_message("settings", bytes(self.settings))
 
-    async def set_control(self, value: str) -> None:
+    async def set_control(self, key: str) -> None:
         """Set the control mode (off, heat, fan_only)."""
-        # Find the key for the value
-        for key, val in CONTROL_OPTIONS.items():
-            if val == value:
-                if key == "off":
-                    await self.send_message("off")
-                elif key == "fan_only":
-                    await self.send_message("fan_only", bytes([0x00, 0x00, self.settings[5], 0xFF]))
-                elif key == "heat":
-                    await self.send_message("heat", bytes(self.settings))
-                return
+
+        if key == "off":
+            await self.send_message("off")
+        elif key == "fan_only":
+            await self.send_message("fan_only", bytes([0x00, 0x00, self.settings[5], 0xFF]))
+        elif key == "heat":
+            await self.send_message("heat", bytes(self.settings))
+        return
