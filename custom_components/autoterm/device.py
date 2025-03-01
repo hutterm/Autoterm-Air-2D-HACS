@@ -304,13 +304,13 @@ class AutotermDevice:
                 "frequencyFuelPump": buffer[14] / 100,
             }
             
-            # Determine control state based on status code
-            if self.status_data["statusCode"] in ["0.1", "4.0"]:
-                self.status_data["control"] = "off"
-            elif self.status_data["statusCode"] == "3.35":
-                self.status_data["control"] = "fan_only"
-            else:
-                self.status_data["control"] = "heat"
+            # # Determine control state based on status code
+            # if self.status_data["statusCode"] in ["0.1", "4.0"]:
+            #     self.status_data["control"] = "off"
+            # elif self.status_data["statusCode"] == "3.35":
+            #     self.status_data["control"] = "fan_only"
+            # else:
+            #     self.status_data["control"] = "heat"
                 
             # Add status text
             self.status_data["status"] = STATUS_OPTIONS.get(
@@ -446,6 +446,8 @@ class AutotermDevice:
 
     async def set_control(self, key: str) -> None:
         """Set the control mode (off, heat, fan_only)."""
+
+        self.status_data["control"] = key
 
         if key == "off":
             await self.send_message("off")
