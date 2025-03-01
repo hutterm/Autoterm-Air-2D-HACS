@@ -192,6 +192,7 @@ class AutotermDevice:
         if not self.serial:
             raise Exception("Not connected to device")
             
+        _LOGGER.debug(f"Sending message: {key} ({payload.hex()})")
         async with self._writer_lock:
             try:
                 message_id = MESSAGE_IDS_REV.get(key)
