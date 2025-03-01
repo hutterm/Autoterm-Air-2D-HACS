@@ -8,6 +8,7 @@ from homeassistant.core import HomeAssistant, callback
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.dispatcher import async_dispatcher_connect
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
+# from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import DOMAIN, MANUFACTURER, MODEL
 from .device import SIGNAL_STATE_UPDATED, AutotermDevice
@@ -35,16 +36,22 @@ async def async_setup_entry(
     """Set up the Autoterm sensor platform."""
     device: AutotermDevice = hass.data[DOMAIN][entry.entry_id]
     entities = [AutotermSensor(device, entry.entry_id, key) for key in SENSOR_TYPES]
+    # coordinator = device["coordinator"]
+    # entities = [AutotermSensor(coordinator, device, entry.entry_id, key) for key in SENSOR_TYPES]
     async_add_entities(entities)
 
 class AutotermSensor(SensorEntity):
+# class AutotermSensor(CoordinatorEntity):
     """Representation of an Autoterm sensor entity."""
 
     def __init__(self, device: AutotermDevice, entry_id: str, key: str):
+    # def __init__(self, coordinator, device: AutotermDevice, entry_id: str, key: str, name: str=None):
         """Initialize the sensor entity."""
+        # super().__init__(coordinator)
         self._device = device
         self._entry_id = entry_id
         self._key = key
+        # self._name = name
         self._attr_unique_id = f"{entry_id}_{key}"
         self._attr_name, self._attr_native_unit_of_measurement, self._attr_device_class,self._attr_state_class  = SENSOR_TYPES[key]
         self._attr_device_info = {
@@ -63,6 +70,34 @@ class AutotermSensor(SensorEntity):
                 self.hass, self._status_updated_signal, self.async_write_ha_state
             )
         )
+       
+    # @property
+    # def available(self):
+    #     """Return if entity is available."""
+    #     # Use both coordinator availability and the presence of data
+    #     return self.coordinator.last_update_success and self._get_value() is not None
+        
+
+    # def _get_value(self):
+    #     """Get value from coordinator data."""
+    #     if not self.coordinator.data:
+    #         return None
+            
+    #     # Map entity_key to appropriate data structure
+    #     if self._entity_key.startswith("temperature_"):
+    #         if self._entity_key == "temperature_intake" and "boardTemp" in self.coordinator.data["status_data"]:
+    #             value = self.coordinator.data["status_data"]["boardTemp"]
+    #             return value > 127 and value - 255 or value
+    #         elif self._entity_key == "temperature_sensor" and "externalTemp" in self.coordinator.data["status_data"]:
+    #             return self.coordinator.data["status_data"]["externalTemp"]
+    #         # Add other temperature mappings here
+            
+    #     elif self._entity_key == "status" and "status" in self.coordinator.data["status_data"]:
+    #         return self.coordinator.data["status_data"]["status"]
+            
+    #     # Add other entity mappings
+        
+    #     return None
 
     @property
     def native_value(self) -> Any:

@@ -77,6 +77,29 @@ class AutotermConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             ),
             errors=errors,
         )
+    
+    async def async_step_options(self, user_input=None):
+        """Handle options flow."""
+        if user_input is not None:
+            return self.async_create_entry(title="", data=user_input)
+
+        # Get all temperature sensor entities
+        temperature_entities = []
+        for entity_id in self.hass.states.async_entity_ids():
+            state = self.hass.states.get(entity_id)
+            if (
+                state and 
+                state.attributes.get("device_class") == "temperature" and
+                entity_id.startswith("sensor.")
+            ):
+                temperature_entities.append(entity_id)
+
+        return self.async_show_form(
+            step_id="options",
+            data_schema=vol.Schema({
+                vol.Optional(ATTR_TEMPERATURE_ENTITY): vol.In(temperature_entities),
+            }),
+        )
 
     @staticmethod
     def _test_connection(port: str) -> None:
@@ -86,6 +109,49 @@ class AutotermConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             ser.close()
         except serial.SerialException:
             raise CannotConnect
+
+
+# Also implement options flow
+@staticmethod
+def async_get_options_flow(config_entry):
+    """Get the options flow for this handler."""
+    return OptionsFlowHandler(config_entry)
+
+class OptionsFlowHandler(config_entries.OptionsFlow):
+    """Handle options flow for Autoterm integration."""
+
+    def __init__(self, config_entry):
+        """Initialize options flow."""
+        self.config_entry = config_entry
+
+    async def async_step_init(self, user_input=None):
+        """Manage the options."""
+        if user_input is not None:
+            return self.async_create_entry(title="", data=user_input)
+
+        # Get all temperature sensor entities
+        temperature_entities = []
+        for entity_id in self.hass.states.async_entity_ids():
+            state = self.hass.states.get(entity_id)
+            if (
+                state and 
+                state.attributes.get("device_class") == "temperature" and
+                entity_id.startswith("sensor.")
+            ):
+                temperature_entities.append(entity_id)
+
+        return self.async_show_form(
+            step_id="init",
+            data_schema=vol.Schema({
+                vol.Optional(
+                    ATTR_TEMPERATURE_ENTITY,
+                    default=self.config_entry.options.get(
+                        ATTR_TEMPERATURE_ENTITY,
+                        self.config_entry.data.get(ATTR_TEMPERATURE_ENTITY, "")
+                    )
+                ): vol.In(temperature_entities),
+            }),
+        )
 
 class CannotConnect(HomeAssistantError):
     """Error to indicate we cannot connect."""
