@@ -11,20 +11,16 @@ from homeassistant.core import callback
 from homeassistant.helpers.dispatcher import async_dispatcher_send
 
 from .const import (
-    CONTROL_OPTIONS,
     DIAG_MESSAGE_IDS,
     ERROR_PROCESS_SETTINGS_MESSAGE,
     ERROR_PROCESS_STATUS_MESSAGE,
     ERROR_PROCESS_TEMPERATURE_MESSAGE,
-    LEVEL_OPTIONS,
     MESSAGE_IDS,
     MESSAGE_IDS_REV,
     MESSAGE_TYPES,
     MODE_OPTIONS,
     SENSOR_OPTIONS,
     STATUS_OPTIONS,
-    TEMP_MAX,
-    TEMP_MIN,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -142,6 +138,8 @@ class AutotermDevice:
             return self.status_data[entity_key]
         elif entity_key in self.settings_data:
             return self.settings_data[entity_key]
+        elif entity_key == "controller_temp":
+            return self.temperature_data
 
         # # Temperature entities
         # if entity_key == "temperature_intake" and "boardTemp" in self.status_data:
@@ -304,7 +302,8 @@ class AutotermDevice:
                 "status_code": f"{buffer[0]}.{buffer[1]}",
                 "error_code": buffer[2],
                 "board_temp": buffer[3],
-                "external_temp": struct.unpack("b", bytes([buffer[4]]))[0],  # Signed byte
+                # signed byte
+                "external_temp": buffer[4] > 127 and buffer[4] - 255 or buffer[4],
                 "voltage": buffer[6] / 10,
                 #"temperature_heat_exchanger": buffer[8] - 15,
                 "flame_temperature" : buffer[7] << 8 | buffer[8],

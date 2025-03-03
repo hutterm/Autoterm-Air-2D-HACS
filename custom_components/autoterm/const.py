@@ -55,10 +55,10 @@ DIAG_MESSAGE_IDS = {
 
 # Sensor options
 SENSOR_OPTIONS = {
-    0x00: "unbekannt",
+    #0x00: "unbekannt",
     0x01: "Heizgerät",
     0x02: "Bedienpanel", # this is using temperature via set temp
-    0x03: "extern",
+    #0x03: "extern",
     0x04: "Manuell" # this is using set power
 }
 
