@@ -105,7 +105,7 @@ class AutotermClimate(ClimateEntity):
     @property
     def current_temperature(self) -> int | None:
         """Return the current temperature."""
-        return self._device.get_entity_state("temperature_sensor")
+        return self._device.get_entity_state("controller_temp")
 
     async def async_set_temperature(self, **kwargs: Any) -> None:
         """Set a new target temperature."""

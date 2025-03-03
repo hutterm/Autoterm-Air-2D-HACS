@@ -48,8 +48,9 @@ class AutotermDevice:
         # State data
         self.status_data = {}
         self.settings_data = {}
-        self.temperature_data = {}
+        self.temperature_data = 0
         self.external_temperature_sensor = None
+        self.control = "off"
 
     async def connect(self) -> bool:
         """Connect to the device."""
@@ -140,6 +141,8 @@ class AutotermDevice:
             return self.settings_data[entity_key]
         elif entity_key == "controller_temp":
             return self.temperature_data
+        elif entity_key == "control":
+            return self.control
 
         # # Temperature entities
         # if entity_key == "temperature_intake" and "boardTemp" in self.status_data:
@@ -452,7 +455,7 @@ class AutotermDevice:
     async def set_control(self, key: str) -> None:
         """Set the control mode (off, heat, fan_only)."""
 
-        self.status_data["control"] = key
+        self.control = key
 
         if key == "off":
             await self.send_message("off")
