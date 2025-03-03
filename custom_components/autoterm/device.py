@@ -426,6 +426,7 @@ class AutotermDevice:
             if val == value:
                 self.settings = bytearray(self.settings)
                 self.settings[4] = key
+                self._notify_state_update("mode")
                 await self.send_message("settings", bytes(self.settings))
                 await asyncio.sleep(0.5)
                 await self.send_message('status')
@@ -440,6 +441,10 @@ class AutotermDevice:
         if 0 <= value <= 9:
             self.settings = bytearray(self.settings)
             self.settings[5] = value
+            
+            self._notify_state_update("power")
+            self._notify_state_update("level")
+
             await self.send_message("settings", bytes(self.settings))
             await asyncio.sleep(0.5)
             await self.send_message('status')
@@ -455,6 +460,7 @@ class AutotermDevice:
             await self.send_message("fan_only", bytes([0x00, 0x00, self.settings[5], 0xFF]))
         elif key == "heat":
             await self.send_message("heat", bytes(self.settings))
+        self._notify_state_update("control")
             
         await asyncio.sleep(0.5)
         await self.send_message('status')

@@ -72,6 +72,7 @@ class AutotermClimate(ClimateEntity):
     def hvac_mode(self) -> HVACMode:
         """Return the current HVAC mode."""
         control = self._device.get_entity_state("control")
+        _LOGGER.debug("HVAC Mode Control: %s", control)
         if control == "heat":
             return HVACMode.HEAT
         elif control == "fan_only":
