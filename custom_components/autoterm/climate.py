@@ -86,7 +86,7 @@ class AutotermClimate(ClimateEntity):
         status = self._device.get_entity_state("status_code")
 
         if status.startswith("4"):
-            return HVACAction.Off
+            return HVACAction.OFF
         elif status.startswith("2"):
             return HVACAction.PREHEATING
         elif status.startswith("1") or status == "3.4":
