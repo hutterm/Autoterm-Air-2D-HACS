@@ -461,7 +461,7 @@ class AutotermDevice:
         await self.send_message('status')
         return
     
-    def set_external_temperature_sensor(self, key: str) -> None:
+    async def set_external_temperature_sensor(self, key: str | None) -> None:
         """Set the external temperature sensor."""
         self.external_temperature_sensor = key
         self._notify_state_update("external_temperature_sensor")

@@ -82,21 +82,26 @@ class ExternalTemperatureSensorSelect(SelectEntity):
             return self._options.get(option)    
         return None
 
-    async def async_select_option(self, option: str) -> None:
-        """Change the selected option."""
-        for key, value in self._options.items():
-            if value == option:
-                if key == "none":
-                    # Handle the None option
-                    await self._device.set_external_temperature_sensor(None)
-                else:
-                    await self._device.set_external_temperature_sensor(key)
-                    tempState = self._hass.states.get(key)
-                    if tempState:
+async def async_select_option(self, option: str) -> None:
+    """Change the selected option."""
+    for key, value in self._options.items():
+        if value == option:
+            if key == "none":
+                # Handle the None option
+                await self._device.set_external_temperature_sensor(None)
+                # Skip setting the temperature value since there's no sensor
+            else:
+                await self._device.set_external_temperature_sensor(key)
+                tempState = self._hass.states.get(key)
+                if tempState and tempState.state not in ('unknown', 'unavailable'):
+                    try:
                         tempValue = float(tempState.state)
                         await self._device.set_temperature_current(round(tempValue))
-                self.async_write_ha_state()
-                return
+                    except (ValueError, TypeError):
+                        # Handle case where the state isn't a valid number
+                        pass
+            self.async_write_ha_state()
+            return
 
 class AutotermSelect(SelectEntity):
     """Representation of an Autoterm select entity."""
