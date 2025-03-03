@@ -58,10 +58,10 @@ class ExternalTemperatureSensorSelect(SelectEntity):
             )
         )
     
-    def get_all_temperature_sensors(self,hass: HomeAssistant) -> dict:
-        """Return all available temperature sensors."""
+    def get_all_temperature_sensors(self, hass: HomeAssistant) -> dict:
+        """Return all available temperature sensors with a None option."""
         entities = hass.states.async_all("sensor")
-        sensors = {}
+        sensors = {"none": "None"}  # Add "None" as the first option
         for entity in entities:
             if entity.attributes.get("device_class") == "temperature":
                 sensors[entity.entity_id] = entity.name
@@ -70,26 +70,31 @@ class ExternalTemperatureSensorSelect(SelectEntity):
     @property
     def options(self) -> list[str]:
         """Return a set of available options."""
-        return self._options.values()
+        # Refresh available sensors each time options are requested
+        self._options = self.get_all_temperature_sensors(self._hass)
+        return list(self._options.values())
 
     @property
     def current_option(self) -> str | None:
         """Return the current selected option."""
         option = self._device.get_external_temperature_sensor()
-        if option:
+        if option and option in self._options:
             return self._options.get(option)    
         return None
 
     async def async_select_option(self, option: str) -> None:
-
         """Change the selected option."""
         for key, value in self._options.items():
             if value == option:
-                await self._device.set_external_temperature_sensor(key)
-                tempState = self._hass.states.get(key)
-                if tempState:
-                    tempValue = float(tempState.state)
-                    await self._device.set_temperature_current(round(tempValue))
+                if key == "none":
+                    # Handle the None option
+                    await self._device.set_external_temperature_sensor(None)
+                else:
+                    await self._device.set_external_temperature_sensor(key)
+                    tempState = self._hass.states.get(key)
+                    if tempState:
+                        tempValue = float(tempState.state)
+                        await self._device.set_temperature_current(round(tempValue))
                 self.async_write_ha_state()
                 return
 
