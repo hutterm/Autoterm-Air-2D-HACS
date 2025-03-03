@@ -53,6 +53,7 @@ class AutotermDevice:
         self.status_data = {}
         self.settings_data = {}
         self.temperature_data = {}
+        self.external_temperature_sensor = None
 
     async def connect(self) -> bool:
         """Connect to the device."""
@@ -305,7 +306,7 @@ class AutotermDevice:
                 "board_temp": buffer[3],
                 "external_temp": struct.unpack("b", bytes([buffer[4]]))[0],  # Signed byte
                 "voltage": buffer[6] / 10,
-                "temperature_heat_exchanger": buffer[8] - 15,
+                #"temperature_heat_exchanger": buffer[8] - 15,
                 "flame_temperature" : buffer[7] << 8 | buffer[8],
                 "fan_rpm_specified": buffer[11] * 60,
                 "fan_rpm_actual": buffer[12] * 60,
@@ -459,3 +460,14 @@ class AutotermDevice:
         await asyncio.sleep(0.5)
         await self.send_message('status')
         return
+    
+    def set_external_temperature_sensor(self, key: str) -> None:
+        """Set the external temperature sensor."""
+        self.external_temperature_sensor = key
+        self._notify_state_update("external_temperature_sensor")
+        return
+    
+    def get_external_temperature_sensor(self) -> str:
+        """Get the external temperature sensor."""
+        return self.external_temperature_sensor
+

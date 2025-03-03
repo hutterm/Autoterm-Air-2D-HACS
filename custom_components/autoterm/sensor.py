@@ -21,7 +21,7 @@ SENSOR_TYPES = {
     "board_temp": ("Intake Temperature", UnitOfTemperature.CELSIUS, SensorDeviceClass.TEMPERATURE, SensorStateClass.MEASUREMENT),
     "external_temp": ("External Sensor Temperature", UnitOfTemperature.CELSIUS, SensorDeviceClass.TEMPERATURE, SensorStateClass.MEASUREMENT),
     "voltage": ("Voltage", UnitOfElectricPotential.VOLT, SensorDeviceClass.VOLTAGE, SensorStateClass.MEASUREMENT),
-    "temperature_heat_exchanger": ("Heat Exchanger Temperature", UnitOfTemperature.CELSIUS, SensorDeviceClass.TEMPERATURE, SensorStateClass.MEASUREMENT),
+    #"temperature_heat_exchanger": ("Heat Exchanger Temperature", UnitOfTemperature.CELSIUS, SensorDeviceClass.TEMPERATURE, SensorStateClass.MEASUREMENT),
     "flame_temperature": ("Flame Temperature", UnitOfTemperature.KELVIN, SensorDeviceClass.TEMPERATURE, SensorStateClass.MEASUREMENT),
     #"temperature_panel": ("Control Panel Temperature", UnitOfTemperature.CELSIUS, SensorDeviceClass.TEMPERATURE, SensorStateClass.MEASUREMENT),
     "fan_rpm_specified": ("Fan RPM Specified", None, None, SensorStateClass.MEASUREMENT),

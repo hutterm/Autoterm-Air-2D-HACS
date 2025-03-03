@@ -81,11 +81,11 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     # }
     hass.data[DOMAIN][entry.entry_id] = device
 
-    # Register service for manual temperature update
-    async def handle_update_temperature(call):
-        """Handle the service call to update temperature."""
+    # if temp_entity_id:
+    async def periodic_temp_update(now=None):
+        """Update the temperature periodically."""
         device = hass.data[DOMAIN][entry.entry_id]
-        temp_entity_id = call.data.get(ATTR_TEMPERATURE_ENTITY)
+        temp_entity_id = device.get_external_temperature_sensor()
         
         _LOGGER.info(f"Updating heater with temperature from {temp_entity_id}")
         if temp_entity_id:
@@ -100,39 +100,19 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                     _LOGGER.error(f"Invalid temperature value from {temp_entity_id}: {temp_state.state}")
             else:
                 _LOGGER.error(f"Temperature entity {temp_entity_id} not found")
-    
-    hass.services.async_register(
-        DOMAIN, 
-        SERVICE_UPDATE_TEMPERATURE, 
-        handle_update_temperature,
-        schema=vol.Schema({
-            vol.Required(ATTR_TEMPERATURE_ENTITY): vol.All(cv.ensure_list, [cv.entity_id]),
-        })
-    )
-
-    # Now set up the periodic update if a temperature entity is configured
-    temp_entity_id = entry.options.get(ATTR_TEMPERATURE_ENTITY, entry.data.get(ATTR_TEMPERATURE_ENTITY))
-    
-    if temp_entity_id:
-        async def periodic_temp_update(now=None):
-            """Update the temperature periodically."""
-            await handle_update_temperature(service.ServiceCall(
-                DOMAIN, 
-                SERVICE_UPDATE_TEMPERATURE, 
-                {ATTR_TEMPERATURE_ENTITY: temp_entity_id}
-            ))
         
-        # Update initially
-        await periodic_temp_update()
-        
-        # Schedule updates every 60 seconds (adjust as needed)
-        entry.async_on_unload(
-            async_track_time_interval(
-                hass, 
-                periodic_temp_update, 
-                timedelta(seconds=60)
-            )
+    
+    # Update initially
+    await periodic_temp_update()
+    
+    # Schedule updates every 60 seconds (adjust as needed)
+    entry.async_on_unload(
+        async_track_time_interval(
+            hass, 
+            periodic_temp_update, 
+            timedelta(seconds=60)
         )
+    )
 
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
@@ -140,7 +120,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     entry.async_on_unload(entry.add_update_listener(update_listener))
     
  
-    
 
     # Set up periodic status polling
     async def periodic_status_poll(now=None):

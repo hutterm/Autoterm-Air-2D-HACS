@@ -27,7 +27,71 @@ async def async_setup_entry(
     """Set up the Autoterm select platform."""
     device: AutotermDevice = hass.data[DOMAIN][entry.entry_id]
     entities = [AutotermSelect(device, entry.entry_id, key) for key in SELECT_TYPES]
+    entities.append(ExternalTemperatureSensorSelect(hass, device, entry.entry_id))
     async_add_entities(entities)
+
+class ExternalTemperatureSensorSelect(SelectEntity):
+    """Representation of an external temperature sensor select entity."""
+
+    def __init__(self, hass, device: AutotermDevice, entry_id: str):
+        """Initialize the select entity."""
+        self._device = device
+        self._entry_id = entry_id
+        self._attr_unique_id = f"{entry_id}_external_temperature_sensor"
+        self._attr_name = "External Temperature Sensor"
+        self._attr_device_info = {
+            "identifiers": {(DOMAIN, entry_id)},
+            "name": "Autoterm Air 2D",
+            "manufacturer": MANUFACTURER,
+            "model": MODEL,
+            "sw_version": device.version,
+        }
+        self._hass = hass
+        self._options = self.get_all_temperature_sensors(hass)
+        self._status_updated_signal = SIGNAL_STATE_UPDATED.format(f"{entry_id}_external_temperature_sensor")
+
+    async def async_added_to_hass(self) -> None:
+        """Run when entity is added to Home Assistant."""
+        self.async_on_remove(
+            async_dispatcher_connect(
+                self.hass, self._status_updated_signal, self.async_write_ha_state
+            )
+        )
+    
+    def get_all_temperature_sensors(self,hass: HomeAssistant) -> dict:
+        """Return all available temperature sensors."""
+        entities = hass.states.async_all("sensor")
+        sensors = {}
+        for entity in entities:
+            if entity.attributes.get("device_class") == "temperature":
+                sensors[entity.entity_id] = entity.name
+        return sensors
+    
+    @property
+    def options(self) -> list[str]:
+        """Return a set of available options."""
+        return self._options.values()
+
+    @property
+    def current_option(self) -> str | None:
+        """Return the current selected option."""
+        option = self._device.get_external_temperature_sensor()
+        if option:
+            return self._options.get(option)    
+        return None
+
+    async def async_select_option(self, option: str) -> None:
+
+        """Change the selected option."""
+        for key, value in self._options.items():
+            if value == option:
+                await self._device.set_external_temperature_sensor(key)
+                tempState = self._hass.states.get(key)
+                if tempState:
+                    tempValue = float(tempState.state)
+                    await self._device.set_temperature_current(round(tempValue))
+                self.async_write_ha_state()
+                return
 
 class AutotermSelect(SelectEntity):
     """Representation of an Autoterm select entity."""
