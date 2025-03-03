@@ -307,11 +307,14 @@ class AutotermDevice:
                 "board_temp": buffer[3],
                 # signed byte
                 "external_temp": buffer[4] > 127 and buffer[4] - 255 or buffer[4],
+                "mystery0": buffer[5],
                 "voltage": buffer[6] / 10,
-                #"temperature_heat_exchanger": buffer[8] - 15,
                 "flame_temperature" : buffer[7] << 8 | buffer[8],
+                "mystery1" : buffer[9],
+                "mystery2" : buffer[10],
                 "fan_rpm_specified": buffer[11] * 60,
                 "fan_rpm_actual": buffer[12] * 60,
+                "mystery3" : buffer[13],
                 "frequency_fuel_pump": buffer[14] / 100,
             }
                 
@@ -398,19 +401,17 @@ class AutotermDevice:
         await asyncio.sleep(0.5)
         await self.send_message('status')
 
-    async def set_sensor(self, value: str) -> None:
+    async def set_sensor(self, key: str) -> None:
         """Set the temperature sensor."""
-        _LOGGER.debug(f"Setting sensor to {value}")
-        # Find the key for the value
-        for key, val in SENSOR_OPTIONS.items():
-            if val == value:
-                self.settings = bytearray(self.settings)
-                self.settings[2] = key
-                await self.send_message("settings", bytes(self.settings))
-                
-                await asyncio.sleep(0.5)
-                await self.send_message('status')
-                return
+        _LOGGER.debug(f"Setting sensor to {key}")
+        if SENSOR_OPTIONS.get(key) is not None:
+            self.settings = bytearray(self.settings)
+            self.settings[2] = key
+            await self.send_message("settings", bytes(self.settings))
+            
+            await asyncio.sleep(0.5)
+            await self.send_message('status')
+            return
 
     async def set_temperature_target(self, value: int) -> None:
         """Set the target temperature."""
@@ -421,19 +422,17 @@ class AutotermDevice:
         await asyncio.sleep(0.5)
         await self.send_message('status')
 
-    async def set_mode(self, value: str) -> None:
+    async def set_mode(self, key: str) -> None:
         """Set the operation mode."""
-        _LOGGER.debug(f"Setting mode to {value}")
-        # Find the key for the value
-        for key, val in MODE_OPTIONS.items():
-            if val == value:
-                self.settings = bytearray(self.settings)
-                self.settings[4] = key
-                self._notify_state_update("mode")
-                await self.send_message("settings", bytes(self.settings))
-                await asyncio.sleep(0.5)
-                await self.send_message('status')
-                return
+        _LOGGER.debug(f"Setting mode to {key}")
+        if MODE_OPTIONS.get(key) is not None:
+            self.settings = bytearray(self.settings)
+            self.settings[4] = key
+            self._notify_state_update("mode")
+            await self.send_message("settings", bytes(self.settings))
+            await asyncio.sleep(0.5)
+            await self.send_message('status')
+            return
 
     async def set_power(self, value: int) -> None:
         """Set the power level 10-100."""

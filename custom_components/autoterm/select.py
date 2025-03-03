@@ -135,10 +135,12 @@ class AutotermSelect(SelectEntity):
     def current_option(self) -> str | None:
         """Return the current selected option."""
         key_value = self._device.get_entity_state(self._key)
+        _LOGGER.info(f"Current Option {self._key}: {key_value}")
         return self._options.get(key_value)
 
     async def async_select_option(self, option: str) -> None:
         """Change the selected option."""
+        
         for key, value in self._options.items():
             if value == option:
                 if self._key == "sensor":
