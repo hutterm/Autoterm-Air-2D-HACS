@@ -57,9 +57,9 @@ DIAG_MESSAGE_IDS = {
 SENSOR_OPTIONS = {
     0x00: "unbekannt",
     0x01: "Heizgerät",
-    0x02: "Bedienpanel",
+    0x02: "Bedienpanel", # this is using temperature via set temp
     0x03: "extern",
-    0x04: "Manuell"
+    0x04: "Manuell" # this is using set power
 }
 
 # Level options
@@ -79,10 +79,12 @@ LEVEL_OPTIONS = {
 # Mode options
 MODE_OPTIONS = {
     0x00: "Temperatur halten",
-    0x01: "Wärme + Lüftung",
-    0x02: "Stufenreglung",
+    0x01: "Wärme + Lüftung", # ventilation on
+    0x02: "Stufenreglung", # ventilation off??
     0x03: "Thermostat"
 }
+
+
 
 # Control options
 CONTROL_OPTIONS = {

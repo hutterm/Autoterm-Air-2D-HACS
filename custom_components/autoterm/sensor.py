@@ -16,16 +16,18 @@ from .device import SIGNAL_STATE_UPDATED, AutotermDevice
 _LOGGER = logging.getLogger(__name__)
 
 SENSOR_TYPES = {
-    "temperature_intake": ("Intake Temperature", UnitOfTemperature.CELSIUS, SensorDeviceClass.TEMPERATURE, SensorStateClass.MEASUREMENT),
-    "temperature_sensor": ("External Sensor Temperature", UnitOfTemperature.CELSIUS, SensorDeviceClass.TEMPERATURE, SensorStateClass.MEASUREMENT),
-    "temperature_heat_exchanger": ("Heat Exchanger Temperature", UnitOfTemperature.CELSIUS, SensorDeviceClass.TEMPERATURE, SensorStateClass.MEASUREMENT),
-    "temperature_panel": ("Control Panel Temperature", UnitOfTemperature.CELSIUS, SensorDeviceClass.TEMPERATURE, SensorStateClass.MEASUREMENT),
+    "status_code": ("Status Code", None, None, None),
+    "status": ("Status", None, None, None),
+    "board_temp": ("Intake Temperature", UnitOfTemperature.CELSIUS, SensorDeviceClass.TEMPERATURE, SensorStateClass.MEASUREMENT),
+    "external_temp": ("External Sensor Temperature", UnitOfTemperature.CELSIUS, SensorDeviceClass.TEMPERATURE, SensorStateClass.MEASUREMENT),
     "voltage": ("Voltage", UnitOfElectricPotential.VOLT, SensorDeviceClass.VOLTAGE, SensorStateClass.MEASUREMENT),
+    "temperature_heat_exchanger": ("Heat Exchanger Temperature", UnitOfTemperature.CELSIUS, SensorDeviceClass.TEMPERATURE, SensorStateClass.MEASUREMENT),
+    "flame_temperature": ("Flame Temperature", UnitOfTemperature.KELVIN, SensorDeviceClass.TEMPERATURE, SensorStateClass.MEASUREMENT),
+    #"temperature_panel": ("Control Panel Temperature", UnitOfTemperature.CELSIUS, SensorDeviceClass.TEMPERATURE, SensorStateClass.MEASUREMENT),
+    "fan_rpm_specified": ("Fan RPM Specified", None, None, SensorStateClass.MEASUREMENT),
     "fan_rpm_actual": ("Fan RPM", None, None, SensorStateClass.MEASUREMENT),
     "frequency_fuel_pump": ("Fuel Pump Frequency", "Hz", SensorDeviceClass.FREQUENCY , SensorStateClass.MEASUREMENT),
-    "status": ("Status", None, None, None),
-    "status_code": ("Status Code", None, None, None),
-    "work_time": ("Work Time", "h", SensorDeviceClass.DURATION, SensorStateClass.MEASUREMENT),
+    #"work_time": ("Work Time", "h", SensorDeviceClass.DURATION, SensorStateClass.MEASUREMENT),
 }
 
 async def async_setup_entry(

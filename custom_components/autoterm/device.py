@@ -136,54 +136,60 @@ class AutotermDevice:
     @callback
     def get_entity_state(self, entity_key: str) -> Any:
         """Get the current state for an entity."""
-        # Temperature entities
-        if entity_key == "temperature_intake" and "boardTemp" in self.status_data:
-            value = self.status_data["boardTemp"]
-            return value > 127 and value - 255 or value
-        elif entity_key == "temperature_sensor" and "externalTemp" in self.status_data:
-            return self.status_data["externalTemp"]
-        elif entity_key == "temperature_heat_exchanger" and "temperatureHeatExchanger" in self.status_data:
-            return self.status_data["temperatureHeatExchanger"]
-        elif entity_key == "temperature_panel" and "value" in self.temperature_data:
-            return self.temperature_data["value"]
-        elif entity_key == "temperature_target" and "targetTemperature" in self.settings_data:
-            return self.settings_data["targetTemperature"]
+
+        if entity_key in self.status_data:
+            return self.status_data[entity_key]
+        elif entity_key in self.settings_data:
+            return self.settings_data[entity_key]
+
+        # # Temperature entities
+        # if entity_key == "temperature_intake" and "boardTemp" in self.status_data:
+        #     value = self.status_data["boardTemp"]
+        #     return value > 127 and value - 255 or value
+        # elif entity_key == "temperature_sensor" and "externalTemp" in self.status_data:
+        #     return self.status_data["externalTemp"]
+        # elif entity_key == "temperature_heat_exchanger" and "temperatureHeatExchanger" in self.status_data:
+        #     return self.status_data["temperatureHeatExchanger"]
+        # elif entity_key == "temperature_panel" and "value" in self.temperature_data:
+        #     return self.temperature_data["value"]
+        # elif entity_key == "temperature_target" and "targetTemperature" in self.settings_data:
+        #     return self.settings_data["targetTemperature"]
             
-        # Status entities
-        elif entity_key == "status_code" and "statusCode" in self.status_data:
-            return self.status_data["statusCode"]
-        elif entity_key == "status" and "status" in self.status_data:
-            return self.status_data["status"]
+        # # Status entities
+        # elif entity_key == "status_code" and "statusCode" in self.status_data:
+        #     return self.status_data["statusCode"]
+        # elif entity_key == "status" and "status" in self.status_data:
+        #     return self.status_data["status"]
             
-        # Diagnostic entities
-        elif entity_key == "voltage" and "voltage" in self.status_data:
-            return self.status_data["voltage"]
-        elif entity_key == "fan_rpm_specified" and "fanRpmSpecified" in self.status_data:
-            return self.status_data["fanRpmSpecified"]
-        elif entity_key == "fan_rpm_actual" and "fanRpmActual" in self.status_data:
-            return self.status_data["fanRpmActual"]
-        elif entity_key == "frequency_fuel_pump" and "frequencyFuelPump" in self.status_data:
-            return self.status_data["frequencyFuelPump"]
-        elif entity_key == "blackbox_version" and self.version:
-            return self.version
+        # # Diagnostic entities
+        # elif entity_key == "voltage" and "voltage" in self.status_data:
+        #     return self.status_data["voltage"]
+        # elif entity_key == "fan_rpm_specified" and "fanRpmSpecified" in self.status_data:
+        #     return self.status_data["fanRpmSpecified"]
+        # elif entity_key == "fan_rpm_actual" and "fanRpmActual" in self.status_data:
+        #     return self.status_data["fanRpmActual"]
+        # elif entity_key == "frequency_fuel_pump" and "frequencyFuelPump" in self.status_data:
+        #     return self.status_data["frequencyFuelPump"]
+        # elif entity_key == "blackbox_version" and self.version:
+        #     return self.version
             
-        # Control entities
-        elif entity_key == "control" and "control" in self.status_data:
-            control_key = self.status_data["control"]
-            return CONTROL_OPTIONS.get(control_key, "Unknown")
-        elif entity_key == "level" and "level" in self.settings_data:
-            level_key = self.settings_data["level"]
-            return LEVEL_OPTIONS.get(level_key, "Unknown")
-        elif entity_key == "power" and "level" in self.settings_data:
-            return self.settings_data["level"] + 1
-        elif entity_key == "work_time" and "workTime" in self.settings_data:
-            return self.settings_data["workTime"]
-        elif entity_key == "sensor" and "sensor" in self.settings_data:
-            sensor_key = self.settings_data["sensor"]
-            return SENSOR_OPTIONS.get(sensor_key, "Unknown")
-        elif entity_key == "mode" and "mode" in self.settings_data:
-            mode_key = self.settings_data["mode"]
-            return MODE_OPTIONS.get(mode_key, "Unknown")
+        # # Control entities
+        # elif entity_key == "control" and "control" in self.status_data:
+        #     control_key = self.status_data["control"]
+        #     return CONTROL_OPTIONS.get(control_key, "Unknown")
+        # elif entity_key == "level" and "level" in self.settings_data:
+        #     level_key = self.settings_data["level"]
+        #     return LEVEL_OPTIONS.get(level_key, "Unknown")
+        # elif entity_key == "power" and "level" in self.settings_data:
+        #     return self.settings_data["level"] + 1
+        # elif entity_key == "work_time" and "workTime" in self.settings_data:
+        #     return self.settings_data["workTime"]
+        # elif entity_key == "sensor" and "sensor" in self.settings_data:
+        #     sensor_key = self.settings_data["sensor"]
+        #     return SENSOR_OPTIONS.get(sensor_key, "Unknown")
+        # elif entity_key == "mode" and "mode" in self.settings_data:
+        #     mode_key = self.settings_data["mode"]
+        #     return MODE_OPTIONS.get(mode_key, "Unknown")
             
         return None
 
@@ -294,40 +300,27 @@ class AutotermDevice:
                 raise ValueError("Buffer too short")
                 
             self.status_data = {
-                "statusCode": f"{buffer[0]}.{buffer[1]}",
-                "boardTemp": buffer[3],
-                "externalTemp": struct.unpack("b", bytes([buffer[4]]))[0],  # Signed byte
+                "status_code": f"{buffer[0]}.{buffer[1]}",
+                "error_code": buffer[2],
+                "board_temp": buffer[3],
+                "external_temp": struct.unpack("b", bytes([buffer[4]]))[0],  # Signed byte
                 "voltage": buffer[6] / 10,
-                "temperatureHeatExchanger": buffer[8] - 15,
-                "fanRpmSpecified": buffer[11] * 60,
-                "fanRpmActual": buffer[12] * 60,
-                "frequencyFuelPump": buffer[14] / 100,
+                "temperature_heat_exchanger": buffer[8] - 15,
+                "flame_temperature" : buffer[7] << 8 | buffer[8],
+                "fan_rpm_specified": buffer[11] * 60,
+                "fan_rpm_actual": buffer[12] * 60,
+                "frequency_fuel_pump": buffer[14] / 100,
             }
-            
-            # # Determine control state based on status code
-            # if self.status_data["statusCode"] in ["0.1", "4.0"]:
-            #     self.status_data["control"] = "off"
-            # elif self.status_data["statusCode"] == "3.35":
-            #     self.status_data["control"] = "fan_only"
-            # else:
-            #     self.status_data["control"] = "heat"
                 
             # Add status text
             self.status_data["status"] = STATUS_OPTIONS.get(
-                self.status_data["statusCode"], "unbekannt"
+                self.status_data["status_code"], "unbekannt"
             )
+
+            #notify state update for every entry in the status_data
+            for key in self.status_data:
+                self._notify_state_update(key)
             
-            # Notify entities of state changes
-            self._notify_state_update("temperature_intake")
-            self._notify_state_update("temperature_sensor")
-            self._notify_state_update("temperature_heat_exchanger")
-            self._notify_state_update("status_code")
-            self._notify_state_update("status")
-            self._notify_state_update("voltage")
-            self._notify_state_update("fan_rpm_specified")
-            self._notify_state_update("fan_rpm_actual")
-            self._notify_state_update("frequency_fuel_pump")
-            self._notify_state_update("control")
 
             _LOGGER.debug(f"Status: {self.status_data}")
             
@@ -343,20 +336,16 @@ class AutotermDevice:
             self.settings = buffer
             
             self.settings_data = {
-                "workTime": (buffer[0] << 8 | buffer[1]) / 60,
+                "work_time": (buffer[0] << 8 | buffer[1])/60,
                 "sensor": buffer[2],
-                "targetTemperature": buffer[3],
+                "temperature_target": buffer[3],
                 "mode": buffer[4],
                 "level": buffer[5],
+                "power": (buffer[5] + 1)*10,
             }
-            
-            # Notify entities of state changes
-            self._notify_state_update("work_time")
-            self._notify_state_update("sensor")
-            self._notify_state_update("temperature_target")
-            self._notify_state_update("mode")
-            self._notify_state_update("level")
-            self._notify_state_update("power")
+
+            for key in self.settings_data:
+                self._notify_state_update(key)
             
             _LOGGER.debug(f"Settings: {self.settings_data}")
         except Exception as ex:
@@ -368,9 +357,7 @@ class AutotermDevice:
             if len(buffer) < 1:
                 raise ValueError("Buffer too short")
                 
-            self.temperature_data = {
-                "value": buffer[0]
-            }
+            self.temperature_data = buffer[0]
             
             # Notify entities of state changes
             self._notify_state_update("temperature_panel")
@@ -392,9 +379,9 @@ class AutotermDevice:
         await self.send_message("temperature", bytes([int(value)]))
 
     async def set_work_time(self, value: float) -> None:
-        """Set the work time in hours."""
+        """Set the work time in Hours."""
         if value > 0:
-            value_minutes = int(value * 60)
+            value_minutes = int(value*60)
             self.settings = bytearray(self.settings)
             self.settings[0] = value_minutes >> 8
             self.settings[1] = value_minutes & 0xFF
@@ -404,6 +391,9 @@ class AutotermDevice:
             self.settings[1] = 0xFF
             
         await self.send_message("settings", bytes(self.settings))
+        
+        await asyncio.sleep(0.5)
+        await self.send_message('status')
 
     async def set_sensor(self, value: str) -> None:
         """Set the temperature sensor."""
@@ -414,6 +404,9 @@ class AutotermDevice:
                 self.settings = bytearray(self.settings)
                 self.settings[2] = key
                 await self.send_message("settings", bytes(self.settings))
+                
+                await asyncio.sleep(0.5)
+                await self.send_message('status')
                 return
 
     async def set_temperature_target(self, value: int) -> None:
@@ -421,6 +414,9 @@ class AutotermDevice:
         self.settings = bytearray(self.settings)
         self.settings[3] = int(value)
         await self.send_message("settings", bytes(self.settings))
+        
+        await asyncio.sleep(0.5)
+        await self.send_message('status')
 
     async def set_mode(self, value: str) -> None:
         """Set the operation mode."""
@@ -431,11 +427,13 @@ class AutotermDevice:
                 self.settings = bytearray(self.settings)
                 self.settings[4] = key
                 await self.send_message("settings", bytes(self.settings))
+                await asyncio.sleep(0.5)
+                await self.send_message('status')
                 return
 
     async def set_power(self, value: int) -> None:
-        """Set the power level 1-10."""
-        await self.set_level(value - 1)
+        """Set the power level 10-100."""
+        await self.set_level(int(value/10 - 1))
 
     async def set_level(self, value: int) -> None:
         """Set the level 0-9."""
@@ -443,6 +441,8 @@ class AutotermDevice:
             self.settings = bytearray(self.settings)
             self.settings[5] = value
             await self.send_message("settings", bytes(self.settings))
+            await asyncio.sleep(0.5)
+            await self.send_message('status')
 
     async def set_control(self, key: str) -> None:
         """Set the control mode (off, heat, fan_only)."""
@@ -455,4 +455,7 @@ class AutotermDevice:
             await self.send_message("fan_only", bytes([0x00, 0x00, self.settings[5], 0xFF]))
         elif key == "heat":
             await self.send_message("heat", bytes(self.settings))
+            
+        await asyncio.sleep(0.5)
+        await self.send_message('status')
         return

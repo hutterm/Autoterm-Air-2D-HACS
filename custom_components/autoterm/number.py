@@ -4,7 +4,7 @@ import logging
 from typing import Any
 
 from homeassistant.components.number import NumberEntity, NumberDeviceClass
-from homeassistant.const import UnitOfTemperature
+from homeassistant.const import UnitOfTemperature, UnitOfTime
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.dispatcher import async_dispatcher_connect
@@ -16,8 +16,9 @@ from .device import SIGNAL_STATE_UPDATED, AutotermDevice
 _LOGGER = logging.getLogger(__name__)
 
 NUMBER_TYPES = {
-    "temperature_target": ("Target Temperature", UnitOfTemperature.CELSIUS, TEMP_MIN, TEMP_MAX),
-    "power": ("Power Level", None, 1, 10),
+    "temperature_target": ("Target Temperature",NumberDeviceClass.TEMPERATURE, UnitOfTemperature.CELSIUS, TEMP_MIN, TEMP_MAX,1),
+    "power": ("Power Level",NumberDeviceClass.POWER_FACTOR, None, 10, 100,10),
+    "work_time": ("Work Time",NumberDeviceClass.DURATION, UnitOfTime.Hours, -0.1, 36,0.1),
 }
 
 async def async_setup_entry(
@@ -39,7 +40,7 @@ class AutotermNumber(NumberEntity):
         self._entry_id = entry_id
         self._key = key
         self._attr_unique_id = f"{entry_id}_{key}"
-        self._attr_name, self._attr_native_unit_of_measurement, self._attr_native_min_value, self._attr_native_max_value = NUMBER_TYPES[key]
+        self._attr_name,self._attr_device_class, self._attr_native_unit_of_measurement, self._attr_native_min_value, self._attr_native_max_value, self._attr_native_step = NUMBER_TYPES[key]
         self._attr_device_class = NumberDeviceClass.TEMPERATURE if key == "temperature_target" else None
         self._attr_device_info = {
             "identifiers": {(DOMAIN, entry_id)},
@@ -69,5 +70,7 @@ class AutotermNumber(NumberEntity):
             await self._device.set_temperature_target(int(value))
         elif self._key == "power":
             await self._device.set_power(int(value))
+        elif self._key == "work_time":
+            await self._device.set_work_time(int(value))
         self.async_write_ha_state()
 
