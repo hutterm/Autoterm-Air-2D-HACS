@@ -18,7 +18,7 @@ _LOGGER = logging.getLogger(__name__)
 NUMBER_TYPES = {
     "temperature_target": ("Target Temperature",NumberDeviceClass.TEMPERATURE, UnitOfTemperature.CELSIUS, TEMP_MIN, TEMP_MAX,1),
     "power": ("Power Level",NumberDeviceClass.POWER_FACTOR, None, 10, 100,10),
-    "work_time": ("Work Time",NumberDeviceClass.DURATION, UnitOfTime.HOURS, -0.1, 36,0.1),
+    "work_time": ("Work Time",NumberDeviceClass.DURATION, UnitOfTime.MINUTES, -5, 720,5),
 }
 
 async def async_setup_entry(

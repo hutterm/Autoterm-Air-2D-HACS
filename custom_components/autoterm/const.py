@@ -31,6 +31,7 @@ MESSAGE_IDS = {
     0x01: "heat",
     0x02: "settings",
     0x03: "off",
+    0x04: "serialnum",
     0x06: "version",
     0x07: "diag_control",
     0x08: "fan_speed",
@@ -61,6 +62,7 @@ SENSOR_OPTIONS = {
     #0x03: "extern",
     0x04: "Manuell" # this is using set power
 }
+# kann nicht geändert werden in Stufenregelung/Thermostat
 
 # Level options
 LEVEL_OPTIONS = {
@@ -78,10 +80,19 @@ LEVEL_OPTIONS = {
 
 # Mode options
 MODE_OPTIONS = {
-    0x00: "Temperatur halten",
-    0x01: "Wärme + Lüftung", # ventilation on
-    0x02: "Stufenreglung", # ventilation off??
-    0x03: "Thermostat"
+    0x00: "Temperatur halten", 
+        # leistung wird verringert ohne abschalten
+    0x01: "Wärme + Lüftung", 
+        # wie Thermostat, aber dauerhaft mit Lüfter
+        # heizt bis +1°C, danach lüftet bis -5°C
+    0x02: "Stufenreglung", 
+        # Leistungsmodus
+        # läuft konstant auf eingestellter Stufe
+    0x03: "Thermostat" 
+        # schaltet ein und aus um die Temperatur zu halten, 
+        # Standartwerte: +1°C, -2°C
+        # Einstellwerte: 
+        # +1°C -> +3°C, -1°C -> -7°C
 }
 
 

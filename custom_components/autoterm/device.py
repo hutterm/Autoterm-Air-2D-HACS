@@ -140,7 +140,10 @@ class AutotermDevice:
         elif entity_key in self.settings_data:
             return self.settings_data[entity_key]
         elif entity_key == "controller_temp":
-            return self.temperature_data
+            if self.settings_data["sensor"] == 1:
+                return self.status_data["board_temp"]
+            else:
+                return self.temperature_data
         elif entity_key == "control":
             return self.control
 
@@ -309,7 +312,7 @@ class AutotermDevice:
                 "external_temp": buffer[4] > 127 and buffer[4] - 255 or buffer[4],
                 "mystery0": buffer[5],
                 "voltage": buffer[6] / 10,
-                "flame_temperature" : buffer[7] << 8 | buffer[8],
+                "flame_temperature" : int.from_bytes(buffer.payload[7:9], 'big'),
                 "mystery1" : buffer[9],
                 "mystery2" : buffer[10],
                 "fan_rpm_specified": buffer[11] * 60,
@@ -342,7 +345,7 @@ class AutotermDevice:
             self.settings = buffer
             
             self.settings_data = {
-                "work_time": (buffer[0] << 8 | buffer[1])/60,
+                "work_time": (buffer[0] << 8 | buffer[1]),
                 "sensor": buffer[2],
                 "temperature_target": buffer[3],
                 "mode": buffer[4],
@@ -384,10 +387,10 @@ class AutotermDevice:
         """Set the current temperature."""
         await self.send_message("temperature", bytes([int(value)]))
 
-    async def set_work_time(self, value: float) -> None:
+    async def set_work_time(self, value: int) -> None:
         """Set the work time in Hours."""
         if value > 0:
-            value_minutes = int(value*60)
+            value_minutes = value
             self.settings = bytearray(self.settings)
             self.settings[0] = value_minutes >> 8
             self.settings[1] = value_minutes & 0xFF
