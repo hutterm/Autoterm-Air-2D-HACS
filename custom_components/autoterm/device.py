@@ -312,7 +312,7 @@ class AutotermDevice:
                 "external_temp": buffer[4] > 127 and buffer[4] - 255 or buffer[4],
                 "mystery0": buffer[5],
                 "voltage": buffer[6] / 10,
-                "flame_temperature" : int.from_bytes(buffer.payload[7:9], 'big'),
+                "flame_temperature" : int.from_bytes(buffer[7:9], 'big'),
                 "mystery1" : buffer[9],
                 "mystery2" : buffer[10],
                 "fan_rpm_specified": buffer[11] * 60,
