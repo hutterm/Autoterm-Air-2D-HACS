@@ -145,7 +145,13 @@ class AutotermDevice:
             else:
                 return self.temperature_data
         elif entity_key == "control":
-            return self.control
+            if self.status_data["status_code"] == "3.5":
+                return "fan_only"
+            elif self.status_data["status_code"] == "0.1":
+                return "off"
+            else:
+                return "heat"
+            #return self.control
 
         # # Temperature entities
         # if entity_key == "temperature_intake" and "boardTemp" in self.status_data:
