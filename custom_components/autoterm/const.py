@@ -118,6 +118,7 @@ STATUS_OPTIONS = {
     "2.3": "Zündung 2",
     "2.4": "Brennkammer erhitzen",
     "3.0": "Heizvorgang",
+    "3.11": "Überhitzungsschutz",
     "3.35": "Nur Ventilator",
     "3.4": "Abkühlung",
     "3.5": "Temperaturüberwachung",
