@@ -34,10 +34,13 @@ class AutotermConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         for port in ports:
             # Create a descriptive name that includes device info
             description = f"{port.device}"
+            if port.name:
+                description += f" - {port.name}"
             if port.description:
                 description += f" - {port.description}"
             if port.manufacturer:
                 description += f" ({port.manufacturer})"
+            
                 
             port_options[port.device] = description
         
@@ -66,7 +69,7 @@ class AutotermConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                             options=[
                                 selector.SelectOptionDict(
                                     value=port.device,
-                                    label=f"{port.device} - {port.description or 'Unknown'} ({port.manufacturer or 'Unknown'})"
+                                    label=f"{port.device} - {port.name or 'Unknown'} - {port.description or 'Unknown'} ({port.manufacturer or 'Unknown'})"
                                 )
                                 for port in ports
                             ],

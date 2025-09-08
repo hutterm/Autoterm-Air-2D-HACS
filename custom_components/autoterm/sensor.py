@@ -55,7 +55,7 @@ class AutotermSensor(SensorEntity):
         self._entry_id = entry_id
         self._key = key
         # self._name = name
-        self._attr_unique_id = f"{entry_id}_{key}"
+        self._attr_unique_id = f"autoterm_air_2d_{entry_id}_{key}"
         self._attr_name, self._attr_native_unit_of_measurement, self._attr_device_class,self._attr_state_class  = SENSOR_TYPES[key]
         self._attr_device_info = {
             "identifiers": {(DOMAIN, entry_id)},
