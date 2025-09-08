@@ -327,7 +327,10 @@ class AutotermDevice:
                 "fan_rpm_actual": buffer[12] * 60,
                 "mystery3" : buffer[13],
                 "frequency_fuel_pump": buffer[14] / 100,
-                "mystery4": int.from_bytes(buffer[15:19], 'big') if len(buffer) >= 19 else 0,
+                "mystery4": buffer[15],
+                "frequency_fuel_pump_actual": buffer[16] / 100,
+                "glow_plug_current": buffer[17] / 10,
+                "mystery5": buffer[18],
                 "status_length": len(buffer),
             }
                 

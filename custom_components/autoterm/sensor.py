@@ -24,6 +24,7 @@ SENSOR_TYPES = {
     "mystery2": ("Mystery 2", None, None, None),
     "mystery3": ("Mystery 3", None, None, None),
     "mystery4": ("Mystery 4", None, None, None),
+    "mystery5": ("Mystery 5", None, None, None),
     "status_length": ("Status Length", None, None, None),
     "board_temp": ("Intake Temperature", UnitOfTemperature.CELSIUS, SensorDeviceClass.TEMPERATURE, SensorStateClass.MEASUREMENT),
     #"external_temp": ("External Sensor Temperature", UnitOfTemperature.CELSIUS, SensorDeviceClass.TEMPERATURE, SensorStateClass.MEASUREMENT),
@@ -35,6 +36,8 @@ SENSOR_TYPES = {
     "fan_rpm_specified": ("Fan RPM Specified", None, None, SensorStateClass.MEASUREMENT),
     "fan_rpm_actual": ("Fan RPM", None, None, SensorStateClass.MEASUREMENT),
     "frequency_fuel_pump": ("Fuel Pump Frequency", "Hz", SensorDeviceClass.FREQUENCY , SensorStateClass.MEASUREMENT),
+    "frequency_fuel_pump_actual": ("Fuel Pump Frequency Actual", "Hz", SensorDeviceClass.FREQUENCY , SensorStateClass.MEASUREMENT),
+    "glow_plug_current": ("Glow Plug Current", "A", SensorDeviceClass.CURRENT, SensorStateClass.MEASUREMENT),
     #"work_time": ("Work Time", "h", SensorDeviceClass.DURATION, SensorStateClass.MEASUREMENT),
 }
 
