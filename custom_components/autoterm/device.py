@@ -309,6 +309,8 @@ class AutotermDevice:
         try:
             if len(buffer) < 15:
                 raise ValueError("Buffer too short")
+            # 0300001b7f008201c704002d2d005000500064
+            # ssssErBtEtM0VtFlamM1M2FsFaM3Fp
                 
             self.status_data = {
                 "status_code": f"{buffer[0]}.{buffer[1]}",
@@ -325,6 +327,7 @@ class AutotermDevice:
                 "fan_rpm_actual": buffer[12] * 60,
                 "mystery3" : buffer[13],
                 "frequency_fuel_pump": buffer[14] / 100,
+                "mystery4": int.from_bytes(buffer[15:19], 'big') if len(buffer) >= 19 else 0,
             }
                 
             # Add status text
