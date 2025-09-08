@@ -111,8 +111,9 @@ class AutotermSelect(SelectEntity):
         self._device = device
         self._entry_id = entry_id
         self._key = key
-        self._attr_unique_id = f"autoterm_air_2d_{entry_id}_{key}"
-        self._attr_name, self._options = SELECT_TYPES[key]
+        self._attr_unique_id = f"{entry_id}_{key}"
+        name, self._options = SELECT_TYPES[key]
+        self._attr_name = f"Autoterm Air 2D {name}"
         self._attr_options = list(self._options.values())
         self._attr_device_info = {
             "identifiers": {(DOMAIN, entry_id)},

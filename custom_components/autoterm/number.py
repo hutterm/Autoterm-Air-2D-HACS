@@ -39,8 +39,9 @@ class AutotermNumber(NumberEntity):
         self._device = device
         self._entry_id = entry_id
         self._key = key
-        self._attr_unique_id = f"autoterm_air_2d_{entry_id}_{key}"
-        self._attr_name,self._attr_device_class, self._attr_native_unit_of_measurement, self._attr_native_min_value, self._attr_native_max_value, self._attr_native_step = NUMBER_TYPES[key]
+        self._attr_unique_id = f"{entry_id}_{key}"
+        name,self._attr_device_class, self._attr_native_unit_of_measurement, self._attr_native_min_value, self._attr_native_max_value, self._attr_native_step = NUMBER_TYPES[key]
+        self._attr_name = f"Autoterm Air 2D {name}"
         self._attr_device_class = NumberDeviceClass.TEMPERATURE if key == "temperature_target" else None
         self._attr_device_info = {
             "identifiers": {(DOMAIN, entry_id)},

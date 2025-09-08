@@ -44,7 +44,8 @@ class AutotermClimate(ClimateEntity):
         """Initialize the climate entity."""
         self._device = device
         self._entry_id = entry_id
-        self._attr_unique_id = f"autoterm_air_2d_{entry_id}_climate"
+        self._attr_unique_id = f"{entry_id}_climate"
+        self._attr_name = "Autoterm Air 2D Climate"
         self._attr_device_info = {
             "identifiers": {(DOMAIN, entry_id)},
             "name": "Autoterm Air 2D",
