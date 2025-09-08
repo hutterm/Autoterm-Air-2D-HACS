@@ -18,6 +18,7 @@ _LOGGER = logging.getLogger(__name__)
 SENSOR_TYPES = {
     "status_code": ("Status Code", None, None, None),
     "status": ("Status", None, None, None),
+    "error_code": ("Error Code", None, None, None),
     "board_temp": ("Intake Temperature", UnitOfTemperature.CELSIUS, SensorDeviceClass.TEMPERATURE, SensorStateClass.MEASUREMENT),
     #"external_temp": ("External Sensor Temperature", UnitOfTemperature.CELSIUS, SensorDeviceClass.TEMPERATURE, SensorStateClass.MEASUREMENT),
     "controller_temp": ("Controller Temperature", UnitOfTemperature.CELSIUS, SensorDeviceClass.TEMPERATURE, SensorStateClass.MEASUREMENT),
