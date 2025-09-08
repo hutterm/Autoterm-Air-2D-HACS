@@ -396,7 +396,8 @@ class AutotermDevice:
     async def set_work_time(self, value: int) -> None:
         """Set the work time in Hours."""
         if value > 0:
-            value_minutes = value
+            # minimum 30 minutes
+            value_minutes = max(30, value)
             self.settings = bytearray(self.settings)
             self.settings[0] = value_minutes >> 8
             self.settings[1] = value_minutes & 0xFF
