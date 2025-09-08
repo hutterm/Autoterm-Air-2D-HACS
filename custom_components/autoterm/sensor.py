@@ -24,6 +24,7 @@ SENSOR_TYPES = {
     "mystery2": ("Mystery 2", None, None, None),
     "mystery3": ("Mystery 3", None, None, None),
     "mystery4": ("Mystery 4", None, None, None),
+    "status_length": ("Status Length", None, None, None),
     "board_temp": ("Intake Temperature", UnitOfTemperature.CELSIUS, SensorDeviceClass.TEMPERATURE, SensorStateClass.MEASUREMENT),
     #"external_temp": ("External Sensor Temperature", UnitOfTemperature.CELSIUS, SensorDeviceClass.TEMPERATURE, SensorStateClass.MEASUREMENT),
     "controller_temp": ("Controller Temperature", UnitOfTemperature.CELSIUS, SensorDeviceClass.TEMPERATURE, SensorStateClass.MEASUREMENT),

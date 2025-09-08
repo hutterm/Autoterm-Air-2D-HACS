@@ -328,6 +328,7 @@ class AutotermDevice:
                 "mystery3" : buffer[13],
                 "frequency_fuel_pump": buffer[14] / 100,
                 "mystery4": int.from_bytes(buffer[15:19], 'big') if len(buffer) >= 19 else 0,
+                "status_length": len(buffer),
             }
                 
             # Add status text
