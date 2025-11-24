@@ -1,5 +1,5 @@
-
 """Number platform for Autoterm integration."""
+
 import logging
 from typing import Any
 
@@ -16,10 +16,18 @@ from .device import SIGNAL_STATE_UPDATED, AutotermDevice
 _LOGGER = logging.getLogger(__name__)
 
 NUMBER_TYPES = {
-    "temperature_target": ("Target Temperature",NumberDeviceClass.TEMPERATURE, UnitOfTemperature.CELSIUS, TEMP_MIN, TEMP_MAX,1),
-    "power": ("Power Level",NumberDeviceClass.POWER_FACTOR, None, 10, 100,10),
-    "work_time": ("Work Time",NumberDeviceClass.DURATION, UnitOfTime.MINUTES, -5, 720,5),
+    "temperature_target": (
+        "Target Temperature",
+        NumberDeviceClass.TEMPERATURE,
+        UnitOfTemperature.CELSIUS,
+        TEMP_MIN,
+        TEMP_MAX,
+        1,
+    ),
+    "power": ("Power Level", NumberDeviceClass.POWER_FACTOR, None, 10, 100, 10),
+    # "work_time": ("Work Time",NumberDeviceClass.DURATION, UnitOfTime.MINUTES, -5, 720,5),
 }
+
 
 async def async_setup_entry(
     hass: HomeAssistant,
@@ -31,6 +39,7 @@ async def async_setup_entry(
     entities = [AutotermNumber(device, entry.entry_id, key) for key in NUMBER_TYPES]
     async_add_entities(entities)
 
+
 class AutotermNumber(NumberEntity):
     """Representation of an Autoterm number entity."""
 
@@ -40,9 +49,18 @@ class AutotermNumber(NumberEntity):
         self._entry_id = entry_id
         self._key = key
         self._attr_unique_id = f"{entry_id}_{key}"
-        name,self._attr_device_class, self._attr_native_unit_of_measurement, self._attr_native_min_value, self._attr_native_max_value, self._attr_native_step = NUMBER_TYPES[key]
+        (
+            name,
+            self._attr_device_class,
+            self._attr_native_unit_of_measurement,
+            self._attr_native_min_value,
+            self._attr_native_max_value,
+            self._attr_native_step,
+        ) = NUMBER_TYPES[key]
         self._attr_name = f"Autoterm Air 2D {name}"
-        self._attr_device_class = NumberDeviceClass.TEMPERATURE if key == "temperature_target" else None
+        self._attr_device_class = (
+            NumberDeviceClass.TEMPERATURE if key == "temperature_target" else None
+        )
         self._attr_device_info = {
             "identifiers": {(DOMAIN, entry_id)},
         }
@@ -67,7 +85,6 @@ class AutotermNumber(NumberEntity):
             await self._device.set_temperature_target(int(value))
         elif self._key == "power":
             await self._device.set_power(int(value))
-        elif self._key == "work_time":
-            await self._device.set_work_time(int(value))
+        # elif self._key == "work_time":
+        #     await self._device.set_work_time(int(value))
         self.async_write_ha_state()
-

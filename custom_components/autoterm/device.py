@@ -453,7 +453,15 @@ class AutotermDevice:
         if MODE_OPTIONS.get(key) is not None:
             self.settings = bytearray(self.settings)
             self.settings[4] = key
+
+            if key == 0x02:  # stufenregelung -> manual sensor
+                self.settings[4] = 0x04
+            else:
+                if self.settings[4] == 0x04:
+                    self.settings[4] = 0x02
+
             self._notify_state_update("mode")
+            self._notify_state_update("sensor")
             await self.send_message("settings", bytes(self.settings))
             await asyncio.sleep(0.5)
             await self.send_message("status")
