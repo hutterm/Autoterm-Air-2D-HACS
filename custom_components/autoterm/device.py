@@ -1,4 +1,5 @@
 """Main device implementation for Autoterm heater."""
+
 import asyncio
 import logging
 import struct
@@ -44,7 +45,7 @@ class AutotermDevice:
         self._writer_lock = asyncio.Lock()
         self._running = False
         self._read_task = None
-        
+
         # State data
         self.status_data = {}
         self.settings_data = {}
@@ -56,25 +57,20 @@ class AutotermDevice:
         """Connect to the device."""
         try:
             self.serial = await self.loop.run_in_executor(
-                None, 
-                lambda: serial.Serial(
-                    self.port, 
-                    baudrate=9600, 
-                    timeout=1
-                )
+                None, lambda: serial.Serial(self.port, baudrate=9600, timeout=1)
             )
-            
+
             # Start serial read task
             self._running = True
             self._read_task = self.loop.create_task(self._read_serial())
-            
+
             # Initial device information request
-            await self.send_message('version')
+            await self.send_message("version")
             await asyncio.sleep(0.5)
-            await self.send_message('status')
+            await self.send_message("status")
             await asyncio.sleep(0.5)
-            await self.send_message('settings')
-            
+            await self.send_message("settings")
+
             return True
         except Exception as ex:
             _LOGGER.error(f"Failed to connect to Autoterm device: {ex}")
@@ -89,7 +85,7 @@ class AutotermDevice:
                 await self._read_task
             except asyncio.CancelledError:
                 pass
-        
+
         if self.serial:
             await self.loop.run_in_executor(None, self.serial.close)
             self.serial = None
@@ -101,13 +97,19 @@ class AutotermDevice:
                 # Check if data is available
                 if self.serial.in_waiting:
                     # Read byte by byte until we find the start marker (0xAA)
-                    start_byte = await self.loop.run_in_executor(None, self.serial.read, 1)
+                    start_byte = await self.loop.run_in_executor(
+                        None, self.serial.read, 1
+                    )
                     if start_byte and start_byte[0] == 0xAA:
                         # Read the type byte
-                        type_byte = await self.loop.run_in_executor(None, self.serial.read, 1)
+                        type_byte = await self.loop.run_in_executor(
+                            None, self.serial.read, 1
+                        )
                         if type_byte:
                             # Read length byte
-                            length_byte = await self.loop.run_in_executor(None, self.serial.read, 1)
+                            length_byte = await self.loop.run_in_executor(
+                                None, self.serial.read, 1
+                            )
                             if length_byte:
                                 payload_length = length_byte[0]
                                 # Read the rest of the message (padding byte + id + payload + 2 checksum bytes)
@@ -116,7 +118,12 @@ class AutotermDevice:
                                 )
                                 if len(rest_of_message) == 2 + payload_length + 2:
                                     # Construct the full message
-                                    full_message = start_byte + type_byte + length_byte + rest_of_message
+                                    full_message = (
+                                        start_byte
+                                        + type_byte
+                                        + length_byte
+                                        + rest_of_message
+                                    )
                                     # Process the message
                                     await self.process_message(full_message)
                 else:
@@ -151,7 +158,7 @@ class AutotermDevice:
                 return "off"
             else:
                 return "heat"
-            #return self.control
+            # return self.control
 
         # # Temperature entities
         # if entity_key == "temperature_intake" and "boardTemp" in self.status_data:
@@ -165,13 +172,13 @@ class AutotermDevice:
         #     return self.temperature_data["value"]
         # elif entity_key == "temperature_target" and "targetTemperature" in self.settings_data:
         #     return self.settings_data["targetTemperature"]
-            
+
         # # Status entities
         # elif entity_key == "status_code" and "statusCode" in self.status_data:
         #     return self.status_data["statusCode"]
         # elif entity_key == "status" and "status" in self.status_data:
         #     return self.status_data["status"]
-            
+
         # # Diagnostic entities
         # elif entity_key == "voltage" and "voltage" in self.status_data:
         #     return self.status_data["voltage"]
@@ -183,7 +190,7 @@ class AutotermDevice:
         #     return self.status_data["frequencyFuelPump"]
         # elif entity_key == "blackbox_version" and self.version:
         #     return self.version
-            
+
         # # Control entities
         # elif entity_key == "control" and "control" in self.status_data:
         #     control_key = self.status_data["control"]
@@ -201,38 +208,40 @@ class AutotermDevice:
         # elif entity_key == "mode" and "mode" in self.settings_data:
         #     mode_key = self.settings_data["mode"]
         #     return MODE_OPTIONS.get(mode_key, "Unknown")
-            
+
         return None
 
     async def send_message(self, key: str, payload: bytes = b"") -> None:
         """Send a message to the device."""
         if not self.serial:
             raise Exception("Not connected to device")
-            
+
         _LOGGER.debug(f"Sending message: {key} ({payload.hex()})")
         async with self._writer_lock:
             try:
                 message_id = MESSAGE_IDS_REV.get(key)
                 if message_id is None:
                     raise ValueError(f"Unknown message key: {key}")
-                
+
                 # Construct header
                 header = bytes([0xAA, 0x03, len(payload), 0x00, message_id])
-                
+
                 # Calculate checksum
                 checksum = self._calc_checksum(header + payload)
-                
+
                 # Construct full message
                 message = header + payload + checksum
-                
+
                 # Send message
                 await self.loop.run_in_executor(None, self.serial.write, message)
-                
+
                 # Wait for a moment to ensure the message is sent
                 await asyncio.sleep(0.1)
 
-                _LOGGER.debug(f"Sent message: {key} ({payload.hex()}) full message: {message.hex()}")
-                
+                _LOGGER.debug(
+                    f"Sent message: {key} ({payload.hex()}) full message: {message.hex()}"
+                )
+
                 return True
             except Exception as ex:
                 _LOGGER.error(f"Error sending message: {ex}")
@@ -241,17 +250,17 @@ class AutotermDevice:
     def _calc_checksum(self, data: bytes) -> bytes:
         """Calculate the checksum for a message."""
         crc = 0xFFFF
-        
+
         for byte in data:
             crc = crc ^ byte
-            
+
             for _ in range(8):
                 odd = crc & 0x0001
                 crc >>= 1
-                
+
                 if odd:
                     crc ^= 0xA001
-                    
+
         return bytes([(crc >> 8) & 0xFF, crc & 0xFF])
 
     async def process_message(self, buffer: bytes) -> None:
@@ -259,17 +268,17 @@ class AutotermDevice:
         if len(buffer) < 5:
             _LOGGER.error("Buffer too short")
             return
-            
+
         try:
             type_value = buffer[1]
             type_str = MESSAGE_TYPES.get(type_value, f"Unknown ({type_value})")
             length = buffer[2]
-            payload = buffer[5:5+length]
-            checksum = buffer[5+length:]
+            payload = buffer[5 : 5 + length]
+            checksum = buffer[5 + length :]
             # Verify checksum
-            if checksum != self._calc_checksum(buffer[:5+length]):
+            if checksum != self._calc_checksum(buffer[: 5 + length]):
                 _LOGGER.error(f"Checksum error in message: {buffer.hex()}")
-            
+
             if type_str in ["request", "response"]:
                 id_value = buffer[4]
                 id_str = MESSAGE_IDS.get(id_value, f"Unknown ({id_value})")
@@ -280,7 +289,7 @@ class AutotermDevice:
                 id_str = f"Unknown ({buffer[4]})"
 
             _LOGGER.debug(f"Received message: {type_str} {id_str} ({payload.hex()})")
-            
+
             if type_str == "response":
                 if id_str == "version":
                     await self._process_version_message(payload)
@@ -297,10 +306,10 @@ class AutotermDevice:
         """Process a version message."""
         if len(buffer) < 5:
             return
-            
+
         version_parts = [str(int(b)) for b in buffer[:4]]
         self.version = ".".join(version_parts)
-        
+
         self._notify_state_update("blackbox_version")
         _LOGGER.info(f"Connected to Autoterm heater with version: {self.version}")
 
@@ -311,7 +320,7 @@ class AutotermDevice:
                 raise ValueError("Buffer too short")
             # 0300001b7f008201c704002d2d005000500064
             # ssssErBtEtM0VtFlamM1M2FsFaM3Fp
-                
+
             self.status_data = {
                 "status_code": f"{buffer[0]}.{buffer[1]}",
                 "error_code": buffer[2],
@@ -320,12 +329,12 @@ class AutotermDevice:
                 "external_temp": buffer[4] > 127 and buffer[4] - 255 or buffer[4],
                 "mystery0": buffer[5],
                 "voltage": buffer[6] / 10,
-                "flame_temperature" : int.from_bytes(buffer[7:9], 'big'),
-                "mystery1" : buffer[9],
-                "mystery2" : buffer[10],
+                "flame_temperature": int.from_bytes(buffer[7:9], "big"),
+                "mystery1": buffer[9],
+                "mystery2": buffer[10],
                 "fan_rpm_specified": buffer[11] * 60,
                 "fan_rpm_actual": buffer[12] * 60,
-                "mystery3" : buffer[13],
+                "mystery3": buffer[13],
                 "frequency_fuel_pump": buffer[14] / 100,
                 "mystery4": buffer[15],
                 "frequency_fuel_pump_actual": buffer[16] / 100,
@@ -333,19 +342,18 @@ class AutotermDevice:
                 "mystery5": buffer[18],
                 "status_length": len(buffer),
             }
-                
+
             # Add status text
             self.status_data["status"] = STATUS_OPTIONS.get(
                 self.status_data["status_code"], "unbekannt"
             )
 
-            #notify state update for every entry in the status_data
+            # notify state update for every entry in the status_data
             for key in self.status_data:
                 self._notify_state_update(key)
-            
 
             _LOGGER.debug(f"Status: {self.status_data}")
-            
+
         except Exception as ex:
             _LOGGER.error(f"{ERROR_PROCESS_STATUS_MESSAGE}{ex}")
 
@@ -354,21 +362,21 @@ class AutotermDevice:
         try:
             if len(buffer) < 6:
                 raise ValueError("Buffer too short")
-                
+
             self.settings = buffer
-            
+
             self.settings_data = {
                 "work_time": (buffer[0] << 8 | buffer[1]),
                 "sensor": buffer[2],
                 "temperature_target": buffer[3],
                 "mode": buffer[4],
                 "level": buffer[5],
-                "power": (buffer[5] + 1)*10,
+                "power": (buffer[5] + 1) * 10,
             }
 
             for key in self.settings_data:
                 self._notify_state_update(key)
-            
+
             _LOGGER.debug(f"Settings: {self.settings_data}")
         except Exception as ex:
             _LOGGER.error(f"{ERROR_PROCESS_SETTINGS_MESSAGE}{ex}")
@@ -378,14 +386,14 @@ class AutotermDevice:
         try:
             if len(buffer) < 1:
                 raise ValueError("Buffer too short")
-                
+
             self.temperature_data = buffer[0]
-            
+
             # Notify entities of state changes
             self._notify_state_update("temperature_panel")
 
             _LOGGER.debug(f"Temperature: {self.temperature_data}")
-            
+
         except Exception as ex:
             _LOGGER.error(f"{ERROR_PROCESS_TEMPERATURE_MESSAGE}{ex}")
 
@@ -395,7 +403,7 @@ class AutotermDevice:
         async_dispatcher_send(self.hass, signal)
 
     # ---- Control methods ----
-    
+
     async def set_temperature_current(self, value: int) -> None:
         """Set the current temperature."""
         await self.send_message("temperature", bytes([int(value)]))
@@ -412,11 +420,11 @@ class AutotermDevice:
             self.settings = bytearray(self.settings)
             self.settings[0] = 0xFF
             self.settings[1] = 0xFF
-            
+
         await self.send_message("settings", bytes(self.settings))
-        
+
         await asyncio.sleep(0.5)
-        await self.send_message('status')
+        await self.send_message("status")
 
     async def set_sensor(self, key: str) -> None:
         """Set the temperature sensor."""
@@ -425,9 +433,9 @@ class AutotermDevice:
             self.settings = bytearray(self.settings)
             self.settings[2] = key
             await self.send_message("settings", bytes(self.settings))
-            
+
             await asyncio.sleep(0.5)
-            await self.send_message('status')
+            await self.send_message("status")
             return
 
     async def set_temperature_target(self, value: int) -> None:
@@ -435,9 +443,9 @@ class AutotermDevice:
         self.settings = bytearray(self.settings)
         self.settings[3] = int(value)
         await self.send_message("settings", bytes(self.settings))
-        
+
         await asyncio.sleep(0.5)
-        await self.send_message('status')
+        await self.send_message("status")
 
     async def set_mode(self, key: str) -> None:
         """Set the operation mode."""
@@ -448,25 +456,25 @@ class AutotermDevice:
             self._notify_state_update("mode")
             await self.send_message("settings", bytes(self.settings))
             await asyncio.sleep(0.5)
-            await self.send_message('status')
+            await self.send_message("status")
             return
 
     async def set_power(self, value: int) -> None:
         """Set the power level 10-100."""
-        await self.set_level(int(value/10 - 1))
+        await self.set_level(int(value / 10 - 1))
 
     async def set_level(self, value: int) -> None:
         """Set the level 0-9."""
         if 0 <= value <= 9:
             self.settings = bytearray(self.settings)
             self.settings[5] = value
-            
+
             self._notify_state_update("power")
             self._notify_state_update("level")
 
             await self.send_message("settings", bytes(self.settings))
             await asyncio.sleep(0.5)
-            await self.send_message('status')
+            await self.send_message("status")
 
     async def set_control(self, key: str) -> None:
         """Set the control mode (off, heat, fan_only)."""
@@ -476,22 +484,23 @@ class AutotermDevice:
         if key == "off":
             await self.send_message("off")
         elif key == "fan_only":
-            await self.send_message("fan_only", bytes([0x00, 0x00, self.settings[5], 0xFF]))
+            await self.send_message(
+                "fan_only", bytes([0x00, 0x00, self.settings[5], 0xFF])
+            )
         elif key == "heat":
             await self.send_message("heat", bytes(self.settings))
         self._notify_state_update("control")
-            
+
         await asyncio.sleep(0.5)
-        await self.send_message('status')
+        await self.send_message("status")
         return
-    
+
     async def set_external_temperature_sensor(self, key: str | None) -> None:
         """Set the external temperature sensor."""
         self.external_temperature_sensor = key
         self._notify_state_update("external_temperature_sensor")
         return
-    
+
     def get_external_temperature_sensor(self) -> str:
         """Get the external temperature sensor."""
         return self.external_temperature_sensor
-
