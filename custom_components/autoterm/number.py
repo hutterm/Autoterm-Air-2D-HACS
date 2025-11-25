@@ -45,10 +45,6 @@ class AutotermNumber(NumberEntity):
         self._attr_device_class = NumberDeviceClass.TEMPERATURE if key == "temperature_target" else None
         self._attr_device_info = {
             "identifiers": {(DOMAIN, entry_id)},
-            "name": "Autoterm Air 2D",
-            "manufacturer": MANUFACTURER,
-            "model": MODEL,
-            "sw_version": device.version,
         }
         self._status_updated_signal = SIGNAL_STATE_UPDATED.format(f"{entry_id}_{key}")
 

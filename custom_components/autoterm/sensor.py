@@ -70,10 +70,6 @@ class AutotermSensor(SensorEntity):
         self._attr_name = f"Autoterm Air 2D {name}"
         self._attr_device_info = {
             "identifiers": {(DOMAIN, entry_id)},
-            "name": "Autoterm Air 2D",
-            "manufacturer": MANUFACTURER,
-            "model": MODEL,
-            "sw_version": device.version,
         }
         self._status_updated_signal = SIGNAL_STATE_UPDATED.format(f"{entry_id}_{key}")
 

@@ -41,10 +41,6 @@ class ExternalTemperatureSensorSelect(SelectEntity):
         self._attr_name = "Autoterm Air 2D External Temperature Sensor"
         self._attr_device_info = {
             "identifiers": {(DOMAIN, entry_id)},
-            "name": "Autoterm Air 2D",
-            "manufacturer": MANUFACTURER,
-            "model": MODEL,
-            "sw_version": device.version,
         }
         self._hass = hass
         self._options = self.get_all_temperature_sensors(hass)
