@@ -426,12 +426,20 @@ class AutotermDevice:
         await asyncio.sleep(0.5)
         await self.send_message("status")
 
-    async def set_sensor(self, key: str) -> None:
+    async def set_sensor(self, key: int) -> None:
         """Set the temperature sensor."""
         _LOGGER.debug(f"Setting sensor to {key}")
         if SENSOR_OPTIONS.get(key) is not None:
             self.settings = bytearray(self.settings)
             self.settings[2] = key
+            if key == 0x04:  # if set to manual
+                self.settings[4] = 0x02
+            else:
+                if self.settings[4] == 0x02:
+                    self.settings[4] = 0x03
+
+            self._notify_state_update("sensor")
+            self._notify_state_update("mode")
             await self.send_message("settings", bytes(self.settings))
 
             await asyncio.sleep(0.5)
@@ -447,7 +455,7 @@ class AutotermDevice:
         await asyncio.sleep(0.5)
         await self.send_message("status")
 
-    async def set_mode(self, key: str) -> None:
+    async def set_mode(self, key: int) -> None:
         """Set the operation mode."""
         _LOGGER.debug(f"Setting mode to {key}")
         if MODE_OPTIONS.get(key) is not None:
@@ -455,10 +463,10 @@ class AutotermDevice:
             self.settings[4] = key
 
             if key == 0x02:  # stufenregelung -> manual sensor
-                self.settings[4] = 0x04
+                self.settings[2] = 0x04
             else:
-                if self.settings[4] == 0x04:
-                    self.settings[4] = 0x02
+                if self.settings[2] == 0x04:
+                    self.settings[2] = 0x02
 
             self._notify_state_update("mode")
             self._notify_state_update("sensor")
