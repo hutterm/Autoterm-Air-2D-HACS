@@ -407,6 +407,12 @@ class AutotermDevice:
     async def set_temperature_current(self, value: int) -> None:
         """Set the current temperature."""
         await self.send_message("temperature", bytes([int(value)]))
+        
+    def set_work_time_indefinite(self) -> None:
+        """Set the work time to indefinite."""
+        self.settings = bytearray(self.settings)
+        self.settings[0] = 0xFF
+        self.settings[1] = 0xFF
 
     async def set_work_time(self, value: int) -> None:
         """Set the work time in Hours."""
@@ -417,9 +423,7 @@ class AutotermDevice:
             self.settings[0] = value_minutes >> 8
             self.settings[1] = value_minutes & 0xFF
         else:
-            self.settings = bytearray(self.settings)
-            self.settings[0] = 0xFF
-            self.settings[1] = 0xFF
+            self.set_work_time_indefinite()
 
         await self.send_message("settings", bytes(self.settings))
 
@@ -496,6 +500,7 @@ class AutotermDevice:
         """Set the control mode (off, heat, fan_only)."""
 
         self.control = key
+        self.set_work_time_indefinite()
 
         if key == "off":
             await self.send_message("off")
