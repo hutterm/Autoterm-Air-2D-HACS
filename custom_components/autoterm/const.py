@@ -117,6 +117,8 @@ STATUS_OPTIONS = {
     "2.2": "Zündung",
     "2.3": "Zündung 2",
     "2.4": "Brennkammer erhitzen",
+    "2.5": "Fehler! Keine Zündung.",
+    "2.6": "Kein Diesel? Wiederholen...",
     "3.0": "Heizvorgang",
     "3.11": "Überhitzungsschutz",
     "3.35": "Nur Ventilator",
