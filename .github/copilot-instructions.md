@@ -7,6 +7,13 @@
 - Automated tests: none currently.
 - Single test: not applicable (no test suite). Validate changes by loading `custom_components/autoterm` in a Home Assistant instance and checking integration setup and entities.
 
+## Jujutsu workflow (required)
+
+- This repository uses Jujutsu (`jj`) as the primary change-management workflow.
+- Before any file-system edit, run `jj st` and confirm the current working copy/parent state.
+- For each new task, create a fresh change first (for example `jj new -m "short task description"`), then apply edits inside that new change.
+- Do not mix unrelated work into an existing `jj` change unless explicitly requested.
+
 ## High-level architecture
 
 - Bootstrap and lifecycle (`custom_components/autoterm/__init__.py`):

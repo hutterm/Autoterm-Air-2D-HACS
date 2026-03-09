@@ -30,6 +30,13 @@ This is a **Home Assistant custom component** (HACS integration) for the Autoter
 # Configure via Settings > Devices & Services > Add Integration > Autoterm Heater
 ```
 
+## Jujutsu Workflow (Required)
+
+- This repository is maintained with **jj (Jujutsu)**.
+- Before making any file-system changes, run `jj st` and inspect current working-copy/parent state.
+- For every new task, first create a new change (for example: `jj new -m "short task description"`), then edit files.
+- Do not stack unrelated edits into an existing change unless explicitly instructed.
+
 ## Code Style Guidelines
 
 ### Import Order
