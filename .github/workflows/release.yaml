@@ -1,0 +1,103 @@
+name: Create HACS release
+
+"on":
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Release version (for example 0.3.0 or v0.3.0)
+        required: true
+      prerelease:
+        description: Mark the GitHub release as prerelease
+        required: false
+        default: false
+        type: boolean
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Validate with hassfest
+        uses: home-assistant/actions/hassfest@master
+
+      - name: Normalize and validate version
+        id: version
+        shell: bash
+        run: |
+          set -euo pipefail
+          RAW_VERSION="${{ inputs.version }}"
+          VERSION="${RAW_VERSION#v}"
+
+          if [[ ! "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+([-.][0-9A-Za-z.-]+)?$ ]]; then
+            echo "Invalid version: $RAW_VERSION"
+            echo "Expected format: 1.2.3 (optional prerelease/build suffix allowed)"
+            exit 1
+          fi
+
+          TAG="v$VERSION"
+          if git rev-parse "$TAG" >/dev/null 2>&1; then
+            echo "Tag already exists: $TAG"
+            exit 1
+          fi
+
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+
+      - name: Update integration manifest version
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          manifest_path = Path("custom_components/autoterm/manifest.json")
+          manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+          manifest["version"] = "${{ steps.version.outputs.version }}"
+
+          ordered_manifest = {
+              "domain": manifest["domain"],
+              "name": manifest["name"],
+          }
+          for key in sorted(k for k in manifest if k not in ("domain", "name")):
+              ordered_manifest[key] = manifest[key]
+
+          manifest_path.write_text(
+              json.dumps(ordered_manifest, indent=2) + "\n",
+              encoding="utf-8",
+          )
+          PY
+
+      - name: Commit version bump
+        shell: bash
+        run: |
+          set -euo pipefail
+          if git diff --quiet -- custom_components/autoterm/manifest.json; then
+            echo "Manifest already set to ${{ steps.version.outputs.version }}"
+          else
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add custom_components/autoterm/manifest.json
+            git commit -m "chore(release): ${{ steps.version.outputs.tag }}"
+            git push origin HEAD:${{ github.ref_name }}
+          fi
+
+      - name: Create and push tag
+        shell: bash
+        run: |
+          set -euo pipefail
+          git tag "${{ steps.version.outputs.tag }}"
+          git push origin "${{ steps.version.outputs.tag }}"
+
+      - name: Create GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.version.outputs.tag }}
+          generate_release_notes: true
+          prerelease: ${{ inputs.prerelease }}
