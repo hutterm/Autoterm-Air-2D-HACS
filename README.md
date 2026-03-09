@@ -72,9 +72,9 @@ triggers:
       - sensor.autoterm_air_2d_flame_temperature
     for:
       hours: 0
-      minutes: 30
+      minutes: 10
       seconds: 0
-    above: 200
+    above: 192
 conditions: []
 actions:
   - action: input_datetime.set_datetime
@@ -95,8 +95,7 @@ triggers:
 conditions:
   - condition: template
     value_template: >-
-      {{ (now() - states('input_datetime.last_time_heater_burned') |
-      as_datetime).days >= 30 }}
+      {{ (now().replace(tzinfo=None) - states('input_datetime.last_time_heater_burned') | as_datetime).days >= 20 }}
 actions:
   - action: notify.persistent_notification
     metadata: {}
