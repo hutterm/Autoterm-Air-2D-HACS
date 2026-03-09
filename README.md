@@ -105,28 +105,3 @@ mode: single
 ## Support
 
 For issues, please open a ticket on [GitHub Issues](https://github.com/hutterm/Autoterm-Air-2D-HACS/issues).
-
-## Maintainer: Creating versioned HACS releases
-
-This repository includes a release workflow at `.github/workflows/release.yaml`.
-
-### Triggering a release
-
-1. Open **GitHub → Actions → Create HACS release**.
-2. Click **Run workflow**.
-3. Choose the branch to release from (usually `master`).
-4. Enter `version` as `x.y.z` or `vx.y.z` (example: `0.3.0`).
-5. Optional: set `prerelease` to `true` for test/beta releases.
-
-### How version numbers are set
-
-- The workflow normalizes the input to `x.y.z` and creates tag `vx.y.z`.
-- It updates `custom_components/autoterm/manifest.json` `version` to `x.y.z`.
-- It commits that version bump to the selected branch (if needed), then tags that commit.
-- A GitHub Release is created for the new tag.
-
-### What commit is released
-
-- The release is **not always the latest commit in the repository**.
-- It is the exact commit that gets tagged during the workflow run (the selected branch tip, plus the manifest bump commit when version changes).
-- Commits pushed later are not part of that release until a new version/tag is created.
