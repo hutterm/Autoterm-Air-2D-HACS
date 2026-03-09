@@ -50,6 +50,7 @@ class AutotermDevice:
         self.status_data = {}
         self.settings_data = {}
         self.temperature_data = 0
+        self.temperature_target_requested: float | None = None
         self.external_temperature_sensor = None
         self.control = "off"
 
@@ -142,6 +143,10 @@ class AutotermDevice:
     def get_entity_state(self, entity_key: str) -> Any:
         """Get the current state for an entity."""
 
+        if entity_key == "temperature_target":
+            if self.temperature_target_requested is not None:
+                return self.temperature_target_requested
+            return self.settings_data.get("temperature_target")
         if entity_key in self.status_data:
             return self.status_data[entity_key]
         elif entity_key in self.settings_data:
@@ -375,6 +380,16 @@ class AutotermDevice:
                 "power": (buffer[5] + 1) * 10,
             }
 
+            heater_target = self.settings_data["temperature_target"]
+            if self.temperature_target_requested is None:
+                self.temperature_target_requested = float(heater_target)
+            else:
+                expected_target = self._round_for_heater(
+                    self.temperature_target_requested
+                )
+                if expected_target != heater_target:
+                    self.temperature_target_requested = float(heater_target)
+
             for key in self.settings_data:
                 self._notify_state_update(key)
 
@@ -405,9 +420,40 @@ class AutotermDevice:
 
     # ---- Control methods ----
 
+    @staticmethod
+    def _round_for_heater(value: float) -> int:
+        """Round with half away from zero for stable heater integer values."""
+        return int(value + 0.5) if value >= 0 else int(value - 0.5)
+
+    @staticmethod
+    def _clamp_heater_temperature(value: int) -> int:
+        """Clamp protocol temperature payload to an unsigned byte."""
+        return max(0, min(255, value))
+
+    def _get_target_temperature_compensation(self) -> float:
+        """Return compensation offset used for fractional target support."""
+        if self.temperature_target_requested is None:
+            return 0.0
+        heater_target = self._round_for_heater(self.temperature_target_requested)
+        return heater_target - self.temperature_target_requested
+
     async def set_temperature_current(self, value: int) -> None:
         """Set the current temperature."""
-        await self.send_message("temperature", bytes([int(value)]))
+        heater_value = self._clamp_heater_temperature(int(value))
+        await self.send_message("temperature", bytes([heater_value]))
+
+    async def submit_external_temperature(self, value: float) -> None:
+        """Submit external temperature with compensation for fractional targets."""
+        compensation = self._get_target_temperature_compensation()
+        compensated_value = value + compensation
+        heater_value = self._round_for_heater(compensated_value)
+        _LOGGER.debug(
+            "Submitting external temperature %.2f°C (compensation %.2f -> %d)",
+            value,
+            compensation,
+            heater_value,
+        )
+        await self.set_temperature_current(heater_value)
         
     def set_work_time_indefinite(self) -> None:
         """Set the work time to indefinite."""
@@ -451,10 +497,14 @@ class AutotermDevice:
             await self.send_message("status")
             return
 
-    async def set_temperature_target(self, value: int) -> None:
+    async def set_temperature_target(self, value: float) -> None:
         """Set the target temperature."""
+        requested_target = max(0.0, min(30.0, float(value)))
+        heater_target = self._round_for_heater(requested_target)
+        self.temperature_target_requested = round(requested_target, 1)
         self.settings = bytearray(self.settings)
-        self.settings[3] = int(value)
+        self.settings[3] = heater_target
+        self._notify_state_update("temperature_target")
         await self.send_message("settings", bytes(self.settings))
 
         await asyncio.sleep(0.5)
@@ -523,6 +573,6 @@ class AutotermDevice:
         self._notify_state_update("external_temperature_sensor")
         return
 
-    def get_external_temperature_sensor(self) -> str:
+    def get_external_temperature_sensor(self) -> str | None:
         """Get the external temperature sensor."""
         return self.external_temperature_sensor

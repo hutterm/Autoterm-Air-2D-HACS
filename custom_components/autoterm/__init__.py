@@ -93,8 +93,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             if temp_state:
                 try:
                     temp_value = float(temp_state.state)
-                    # Round to nearest integer as your device expects integer values
-                    await device.set_temperature_current(int(temp_value))
+                    await device.submit_external_temperature(temp_value)
                     _LOGGER.info(f"Updated heater with temperature {temp_value} from {temp_entity_id}")
                 except (ValueError, TypeError):
                     _LOGGER.error(f"Invalid temperature value from {temp_entity_id}: {temp_state.state}")

@@ -94,7 +94,7 @@ class ExternalTemperatureSensorSelect(SelectEntity):
                     if tempState and tempState.state not in ('unknown', 'unavailable'):
                         try:
                             tempValue = float(tempState.state)
-                            await self._device.set_temperature_current(round(tempValue))
+                            await self._device.submit_external_temperature(tempValue)
                         except (ValueError, TypeError):
                             # Handle case where the state isn't a valid number
                             pass

@@ -39,7 +39,7 @@ class AutotermClimate(ClimateEntity):
     _attr_hvac_modes = [HVACMode.OFF, HVACMode.HEAT, HVACMode.FAN_ONLY]
     _attr_min_temp = TEMP_MIN
     _attr_max_temp = TEMP_MAX
-    _attr_target_temperature_step = 1
+    _attr_target_temperature_step = 0.1
 
     def __init__(self, device: AutotermDevice, entry_id: str):
         """Initialize the climate entity."""
@@ -98,7 +98,7 @@ class AutotermClimate(ClimateEntity):
         return HVACAction.IDLE
 
     @property
-    def target_temperature(self) -> int | None:
+    def target_temperature(self) -> float | None:
         """Return the target temperature."""
         return self._device.get_entity_state("temperature_target")
 
@@ -110,7 +110,7 @@ class AutotermClimate(ClimateEntity):
     async def async_set_temperature(self, **kwargs: Any) -> None:
         """Set a new target temperature."""
         if (temperature := kwargs.get(ATTR_TEMPERATURE)) is not None:
-            await self._device.set_temperature_target(int(temperature))
+            await self._device.set_temperature_target(float(temperature))
             self.async_write_ha_state()
 
     async def async_set_hvac_mode(self, hvac_mode: HVACMode) -> None:

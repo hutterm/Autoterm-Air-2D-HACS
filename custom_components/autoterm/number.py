@@ -22,7 +22,7 @@ NUMBER_TYPES = {
         UnitOfTemperature.CELSIUS,
         TEMP_MIN,
         TEMP_MAX,
-        1,
+        0.1,
     ),
     "power": ("Power Level", NumberDeviceClass.POWER_FACTOR, None, 10, 100, 10),
     # "work_time": ("Work Time",NumberDeviceClass.DURATION, UnitOfTime.MINUTES, -5, 720,5),
@@ -84,7 +84,7 @@ class AutotermNumber(NumberEntity):
     async def async_set_native_value(self, value: float) -> None:
         """Set a new value."""
         if self._key == "temperature_target":
-            await self._device.set_temperature_target(int(value))
+            await self._device.set_temperature_target(float(value))
         elif self._key == "power":
             await self._device.set_power(int(value))
         # elif self._key == "work_time":
