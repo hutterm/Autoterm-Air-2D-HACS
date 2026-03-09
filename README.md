@@ -28,6 +28,12 @@ The _Operating Mode_ is kind of tied to the _Temperature Sensor_ entity. When se
 
 When _Bedienpanel_ is selected, the actual temperature sensor is selected in the _External temperature sensor_ Entity. This should list all temperature sensors in HA.
 
+### Fractional temperature behavior
+
+- The climate/number target temperature can be set in **0.1°C** steps.
+- The heater protocol itself accepts integer targets only, so the integration rounds the heater target and compensates submitted external temperatures to preserve fractional setpoint behavior.
+- The climate entity current temperature is also exposed with fractional precision (0.1°C) when fractional input data is available.
+
 ## Additional Templates
 
 ### UI Card displaying the temperature range for _Thermostat_
