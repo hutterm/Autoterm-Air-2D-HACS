@@ -8,8 +8,8 @@ from homeassistant.components.climate import (
     ClimateEntityFeature,
     HVACMode,
 )
-from homeassistant.components.climate.const import HVACAction, PRECISION_TENTHS
-from homeassistant.const import ATTR_TEMPERATURE, UnitOfTemperature
+from homeassistant.components.climate.const import HVACAction
+from homeassistant.const import ATTR_TEMPERATURE, PRECISION_TENTHS, UnitOfTemperature
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.dispatcher import async_dispatcher_connect
 from homeassistant.config_entries import ConfigEntry
