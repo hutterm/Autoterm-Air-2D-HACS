@@ -43,11 +43,6 @@
       "cooling_down": "Cooling Down",
       "temperature_monitoring": "Temperature Monitoring",
       "shutting_down": "Shutting Down"
-    },
-    "error": {
-      "processing_status": "Error processing status message",
-      "processing_settings": "Error processing settings message",
-      "processing_temperature": "Error processing temperature message"
     }
   }
   

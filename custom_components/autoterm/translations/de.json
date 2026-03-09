@@ -44,11 +44,6 @@
       "cooling_down": "Abkühlung",
       "temperature_monitoring": "Temperaturüberwachung",
       "shutting_down": "Abschaltung"
-    },
-    "error": {
-      "processing_status": "Fehler beim Verarbeiten der Statusnachricht",
-      "processing_settings": "Fehler beim Verarbeiten der Einstellungen",
-      "processing_temperature": "Fehler beim Verarbeiten der Temperaturmessung"
     }
   }
   
