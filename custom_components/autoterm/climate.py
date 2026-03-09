@@ -8,7 +8,7 @@ from homeassistant.components.climate import (
     ClimateEntityFeature,
     HVACMode,
 )
-from homeassistant.components.climate.const import HVACAction
+from homeassistant.components.climate.const import HVACAction, PRECISION_TENTHS
 from homeassistant.const import ATTR_TEMPERATURE, UnitOfTemperature
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.dispatcher import async_dispatcher_connect
@@ -39,6 +39,7 @@ class AutotermClimate(ClimateEntity):
     _attr_hvac_modes = [HVACMode.OFF, HVACMode.HEAT, HVACMode.FAN_ONLY]
     _attr_min_temp = TEMP_MIN
     _attr_max_temp = TEMP_MAX
+    _attr_precision = PRECISION_TENTHS
     _attr_target_temperature_step = 0.1
 
     def __init__(self, device: AutotermDevice, entry_id: str):
@@ -55,6 +56,7 @@ class AutotermClimate(ClimateEntity):
         }
         self._status_updated_signal = SIGNAL_STATE_UPDATED.format(f"{entry_id}_control")
         self._temperature_updated_signal = SIGNAL_STATE_UPDATED.format(f"{entry_id}_temperature_target")
+        self._controller_temp_updated_signal = SIGNAL_STATE_UPDATED.format(f"{entry_id}_controller_temp")
 
     async def async_added_to_hass(self) -> None:
         """Run when entity is added to Home Assistant."""
@@ -66,6 +68,11 @@ class AutotermClimate(ClimateEntity):
         self.async_on_remove(
             async_dispatcher_connect(
                 self.hass, self._temperature_updated_signal, self.async_write_ha_state
+            )
+        )
+        self.async_on_remove(
+            async_dispatcher_connect(
+                self.hass, self._controller_temp_updated_signal, self.async_write_ha_state
             )
         )
 
@@ -103,7 +110,7 @@ class AutotermClimate(ClimateEntity):
         return self._device.get_entity_state("temperature_target")
 
     @property
-    def current_temperature(self) -> int | None:
+    def current_temperature(self) -> float | None:
         """Return the current temperature."""
         return self._device.get_entity_state("controller_temp")
 

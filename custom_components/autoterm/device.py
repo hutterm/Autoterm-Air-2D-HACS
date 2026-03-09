@@ -51,6 +51,7 @@ class AutotermDevice:
         self.settings_data = {}
         self.temperature_data = 0
         self.temperature_target_requested: float | None = None
+        self.external_temperature_current: float | None = None
         self.external_temperature_sensor = None
         self.control = "off"
 
@@ -152,10 +153,15 @@ class AutotermDevice:
         elif entity_key in self.settings_data:
             return self.settings_data[entity_key]
         elif entity_key == "controller_temp":
-            if self.settings_data["sensor"] == 1:
-                return self.status_data["board_temp"]
-            else:
-                return self.temperature_data
+            sensor = self.settings_data.get("sensor")
+            if sensor == 1:
+                board_temp = self.status_data.get("board_temp")
+                return float(board_temp) if board_temp is not None else None
+            if self.external_temperature_current is not None:
+                return self.external_temperature_current
+
+            compensation = self._get_target_temperature_compensation()
+            return round(float(self.temperature_data) - compensation, 1)
         elif entity_key == "control":
             if self.status_data["status_code"] == "3.35":
                 return "fan_only"
@@ -357,6 +363,7 @@ class AutotermDevice:
             # notify state update for every entry in the status_data
             for key in self.status_data:
                 self._notify_state_update(key)
+            self._notify_state_update("controller_temp")
 
             _LOGGER.debug(f"Status: {self.status_data}")
 
@@ -407,6 +414,7 @@ class AutotermDevice:
 
             # Notify entities of state changes
             self._notify_state_update("temperature_panel")
+            self._notify_state_update("controller_temp")
 
             _LOGGER.debug(f"Temperature: {self.temperature_data}")
 
@@ -444,6 +452,7 @@ class AutotermDevice:
 
     async def submit_external_temperature(self, value: float) -> None:
         """Submit external temperature with compensation for fractional targets."""
+        self.external_temperature_current = round(value, 1)
         compensation = self._get_target_temperature_compensation()
         compensated_value = value + compensation
         heater_value = self._round_for_heater(compensated_value)
@@ -454,6 +463,7 @@ class AutotermDevice:
             heater_value,
         )
         await self.set_temperature_current(heater_value)
+        self._notify_state_update("controller_temp")
         
     def set_work_time_indefinite(self) -> None:
         """Set the work time to indefinite."""
@@ -570,6 +580,9 @@ class AutotermDevice:
     async def set_external_temperature_sensor(self, key: str | None) -> None:
         """Set the external temperature sensor."""
         self.external_temperature_sensor = key
+        if key is None:
+            self.external_temperature_current = None
+            self._notify_state_update("controller_temp")
         self._notify_state_update("external_temperature_sensor")
         return
 
