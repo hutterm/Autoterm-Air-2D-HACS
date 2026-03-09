@@ -33,6 +33,7 @@ class AutotermClimate(ClimateEntity):
     """Representation of an Autoterm heater climate entity."""
 
     _attr_has_entity_name = True
+    _attr_translation_key = "climate"
     _attr_supported_features = ClimateEntityFeature.TARGET_TEMPERATURE
     _attr_temperature_unit = UnitOfTemperature.CELSIUS
     _attr_hvac_modes = [HVACMode.OFF, HVACMode.HEAT, HVACMode.FAN_ONLY]
@@ -45,7 +46,6 @@ class AutotermClimate(ClimateEntity):
         self._device = device
         self._entry_id = entry_id
         self._attr_unique_id = f"{entry_id}_climate"
-        self._attr_name = "Autoterm Air 2D Climate"
         self._attr_device_info = {
             "identifiers": {(DOMAIN, entry_id)},
             "name": "Autoterm Air 2D",

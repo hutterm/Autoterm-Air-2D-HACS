@@ -57,6 +57,8 @@ class AutotermSensor(SensorEntity):
 # class AutotermSensor(CoordinatorEntity):
     """Representation of an Autoterm sensor entity."""
 
+    _attr_has_entity_name = True
+
     def __init__(self, device: AutotermDevice, entry_id: str, key: str):
     # def __init__(self, coordinator, device: AutotermDevice, entry_id: str, key: str, name: str=None):
         """Initialize the sensor entity."""
@@ -66,8 +68,8 @@ class AutotermSensor(SensorEntity):
         self._key = key
         # self._name = name
         self._attr_unique_id = f"{entry_id}_{key}"
-        name, self._attr_native_unit_of_measurement, self._attr_device_class,self._attr_state_class  = SENSOR_TYPES[key]
-        self._attr_name = f"Autoterm Air 2D {name}"
+        self._attr_translation_key = key
+        _, self._attr_native_unit_of_measurement, self._attr_device_class,self._attr_state_class  = SENSOR_TYPES[key]
         self._attr_device_info = {
             "identifiers": {(DOMAIN, entry_id)},
         }

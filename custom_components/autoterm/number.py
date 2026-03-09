@@ -43,21 +43,23 @@ async def async_setup_entry(
 class AutotermNumber(NumberEntity):
     """Representation of an Autoterm number entity."""
 
+    _attr_has_entity_name = True
+
     def __init__(self, device: AutotermDevice, entry_id: str, key: str):
         """Initialize the number entity."""
         self._device = device
         self._entry_id = entry_id
         self._key = key
         self._attr_unique_id = f"{entry_id}_{key}"
+        self._attr_translation_key = key
         (
-            name,
+            _,
             self._attr_device_class,
             self._attr_native_unit_of_measurement,
             self._attr_native_min_value,
             self._attr_native_max_value,
             self._attr_native_step,
         ) = NUMBER_TYPES[key]
-        self._attr_name = f"Autoterm Air 2D {name}"
         self._attr_device_class = (
             NumberDeviceClass.TEMPERATURE if key == "temperature_target" else None
         )
