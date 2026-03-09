@@ -2,6 +2,7 @@
 
 import asyncio
 import logging
+import math
 import struct
 from typing import Any, Callable, Dict, List, Optional, Tuple
 
@@ -455,7 +456,7 @@ class AutotermDevice:
         self.external_temperature_current = round(value, 1)
         compensation = self._get_target_temperature_compensation()
         compensated_value = value + compensation
-        heater_value = self._round_for_heater(compensated_value)
+        heater_value = self._clamp_heater_temperature(math.floor(compensated_value))
         _LOGGER.debug(
             "Submitting external temperature %.2f°C (compensation %.2f -> %d)",
             value,
