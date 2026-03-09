@@ -46,10 +46,21 @@
     },
     "select": {
       "sensor": {
-        "name": "Temperature sensor"
+        "name": "Temperature sensor",
+        "state": {
+          "heater": "Heater",
+          "control_panel": "Control panel",
+          "manual": "Manual"
+        }
       },
       "mode": {
-        "name": "Operating mode"
+        "name": "Operating mode",
+        "state": {
+          "hold_temperature": "Hold temperature",
+          "heat_ventilation": "Heat + ventilation",
+          "step_control": "Step control",
+          "thermostat": "Thermostat"
+        }
       },
       "external_temperature_sensor": {
         "name": "External temperature sensor"
@@ -60,7 +71,26 @@
         "name": "Status code"
       },
       "status": {
-        "name": "Status"
+        "name": "Status",
+        "state": {
+          "unknown": "Unknown",
+          "standby": "Standby",
+          "cooling_flame_sensor": "Cooling flame sensor",
+          "ventilation": "Ventilation",
+          "heating_glowplug": "Heating glow plug",
+          "pre_ignition": "Pre-ignition",
+          "ignition": "Ignition",
+          "ignition_2": "Ignition 2",
+          "heating_combustion_chamber": "Heating combustion chamber",
+          "no_ignition": "No ignition",
+          "no_diesel_retry": "No diesel? Retrying",
+          "heating": "Heating",
+          "overheat_protection": "Overheat protection",
+          "fan_only": "Fan only",
+          "cooling_down": "Cooling down",
+          "temperature_monitoring": "Temperature monitoring",
+          "shutting_down": "Shutting down"
+        }
       },
       "error_code": {
         "name": "Error code"

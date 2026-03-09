@@ -56,11 +56,11 @@ DIAG_MESSAGE_IDS = {
 
 # Sensor options
 SENSOR_OPTIONS = {
-    #0x00: "unbekannt",
-    0x01: "Heizgerät",
-    0x02: "Bedienpanel", # this is using temperature via set temp
-    #0x03: "extern",
-    0x04: "Manuell" # this is using set power
+    # 0x00: "unknown",
+    0x01: "heater",
+    0x02: "control_panel",
+    # 0x03: "external",
+    0x04: "manual",
 }
 # kann nicht geändert werden in Stufenregelung/Thermostat
 
@@ -80,15 +80,15 @@ LEVEL_OPTIONS = {
 
 # Mode options
 MODE_OPTIONS = {
-    0x00: "Temperatur halten", 
+    0x00: "hold_temperature",
         # leistung wird verringert ohne abschalten
-    0x01: "Wärme + Lüftung", 
+    0x01: "heat_ventilation",
         # wie Thermostat, aber dauerhaft mit Lüfter
         # heizt bis +1°C, danach lüftet bis -5°C
-    0x02: "Stufenreglung", 
+    0x02: "step_control",
         # Leistungsmodus
         # läuft konstant auf eingestellter Stufe
-    0x03: "Thermostat" 
+    0x03: "thermostat"
         # schaltet ein und aus um die Temperatur zu halten, 
         # Standartwerte: +1°C, -2°C
         # Einstellwerte: 
@@ -109,22 +109,22 @@ CONTROL_OPTIONS_REV = {v: k for k, v in CONTROL_OPTIONS.items()}
 
 # Status options
 STATUS_OPTIONS = {
-    "0.1": "Standby",
-    "1.0": "Flammensensor kühlen",
-    "1.1": "Belüftung",
-    "2.0": "Glühkerze aufwärmen",
-    "2.1": "Zündvorbereitung",
-    "2.2": "Zündung",
-    "2.3": "Zündung 2",
-    "2.4": "Brennkammer erhitzen",
-    "2.5": "Fehler! Keine Zündung.",
-    "2.6": "Kein Diesel? Wiederholen...",
-    "3.0": "Heizvorgang",
-    "3.11": "Überhitzungsschutz",
-    "3.35": "Nur Ventilator",
-    "3.4": "Abkühlung",
-    "3.5": "Temperaturüberwachung",
-    "4.0": "Abschaltung"
+    "0.1": "standby",
+    "1.0": "cooling_flame_sensor",
+    "1.1": "ventilation",
+    "2.0": "heating_glowplug",
+    "2.1": "pre_ignition",
+    "2.2": "ignition",
+    "2.3": "ignition_2",
+    "2.4": "heating_combustion_chamber",
+    "2.5": "no_ignition",
+    "2.6": "no_diesel_retry",
+    "3.0": "heating",
+    "3.11": "overheat_protection",
+    "3.35": "fan_only",
+    "3.4": "cooling_down",
+    "3.5": "temperature_monitoring",
+    "4.0": "shutting_down"
 }
 
 # Error messages

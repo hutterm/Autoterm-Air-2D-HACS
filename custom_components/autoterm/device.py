@@ -346,7 +346,7 @@ class AutotermDevice:
 
             # Add status text
             self.status_data["status"] = STATUS_OPTIONS.get(
-                self.status_data["status_code"], "unbekannt"
+                self.status_data["status_code"], "unknown"
             )
 
             # notify state update for every entry in the status_data

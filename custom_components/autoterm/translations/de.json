@@ -46,10 +46,21 @@
     },
     "select": {
       "sensor": {
-        "name": "Temperatursensor"
+        "name": "Temperatursensor",
+        "state": {
+          "heater": "Heizgerät",
+          "control_panel": "Bedienpanel",
+          "manual": "Manuell"
+        }
       },
       "mode": {
-        "name": "Betriebsmodus"
+        "name": "Betriebsmodus",
+        "state": {
+          "hold_temperature": "Temperatur halten",
+          "heat_ventilation": "Wärme + Lüftung",
+          "step_control": "Stufenregelung",
+          "thermostat": "Thermostat"
+        }
       },
       "external_temperature_sensor": {
         "name": "Externer Temperatursensor"
@@ -60,7 +71,26 @@
         "name": "Statuscode"
       },
       "status": {
-        "name": "Status"
+        "name": "Status",
+        "state": {
+          "unknown": "Unbekannt",
+          "standby": "Standby",
+          "cooling_flame_sensor": "Flammensensor kühlen",
+          "ventilation": "Belüftung",
+          "heating_glowplug": "Glühkerze aufwärmen",
+          "pre_ignition": "Zündvorbereitung",
+          "ignition": "Zündung",
+          "ignition_2": "Zündung 2",
+          "heating_combustion_chamber": "Brennkammer erhitzen",
+          "no_ignition": "Keine Zündung",
+          "no_diesel_retry": "Kein Diesel? Wiederholen",
+          "heating": "Heizvorgang",
+          "overheat_protection": "Überhitzungsschutz",
+          "fan_only": "Nur Ventilator",
+          "cooling_down": "Abkühlung",
+          "temperature_monitoring": "Temperaturüberwachung",
+          "shutting_down": "Abschaltung"
+        }
       },
       "error_code": {
         "name": "Fehlercode"
