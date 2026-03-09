@@ -10,10 +10,11 @@ from homeassistant.helpers.dispatcher import async_dispatcher_connect
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 # from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .const import DOMAIN, MANUFACTURER, MODEL
+from .const import DOMAIN, MANUFACTURER, MODEL, STATUS_OPTIONS
 from .device import SIGNAL_STATE_UPDATED, AutotermDevice
 
 _LOGGER = logging.getLogger(__name__)
+STATUS_STATE_OPTIONS = list(dict.fromkeys(["unknown", *STATUS_OPTIONS.values()]))
 
 SENSOR_TYPES = {
     "status_code": ("Status Code", None, None, None),
@@ -70,6 +71,9 @@ class AutotermSensor(SensorEntity):
         self._attr_unique_id = f"{entry_id}_{key}"
         self._attr_translation_key = key
         _, self._attr_native_unit_of_measurement, self._attr_device_class,self._attr_state_class  = SENSOR_TYPES[key]
+        if key == "status":
+            self._attr_device_class = SensorDeviceClass.ENUM
+            self._attr_options = STATUS_STATE_OPTIONS
         self._attr_device_info = {
             "identifiers": {(DOMAIN, entry_id)},
         }
