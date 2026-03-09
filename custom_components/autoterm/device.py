@@ -275,9 +275,10 @@ class AutotermDevice:
             length = buffer[2]
             payload = buffer[5 : 5 + length]
             checksum = buffer[5 + length :]
-            # Verify checksum
+            # Verify checksum and discard corrupted frames.
             if checksum != self._calc_checksum(buffer[: 5 + length]):
                 _LOGGER.error(f"Checksum error in message: {buffer.hex()}")
+                return
 
             if type_str in ["request", "response"]:
                 id_value = buffer[4]
@@ -316,7 +317,7 @@ class AutotermDevice:
     async def _process_status_message(self, buffer: bytes) -> None:
         """Process a status message."""
         try:
-            if len(buffer) < 15:
+            if len(buffer) < 19:
                 raise ValueError("Buffer too short")
             # 0300001b7f008201c704002d2d005000500064
             # ssssErBtEtM0VtFlamM1M2FsFaM3Fp
