@@ -8,11 +8,13 @@ from homeassistant.core import HomeAssistant, callback
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.dispatcher import async_dispatcher_connect
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.restore_state import RestoreEntity
 
 from .const import DOMAIN, MANUFACTURER, MODEL, SENSOR_OPTIONS, MODE_OPTIONS
 from .device import SIGNAL_STATE_UPDATED, AutotermDevice
 
 _LOGGER = logging.getLogger(__name__)
+ATTR_SELECTED_ENTITY_ID = "selected_entity_id"
 
 SELECT_TYPES = {
     "sensor": ("Temperature Sensor", SENSOR_OPTIONS),
@@ -30,7 +32,7 @@ async def async_setup_entry(
     entities.append(ExternalTemperatureSensorSelect(hass, device, entry.entry_id))
     async_add_entities(entities)
 
-class ExternalTemperatureSensorSelect(SelectEntity):
+class ExternalTemperatureSensorSelect(SelectEntity, RestoreEntity):
     """Representation of an external temperature sensor select entity."""
 
     _attr_has_entity_name = True
@@ -50,11 +52,13 @@ class ExternalTemperatureSensorSelect(SelectEntity):
 
     async def async_added_to_hass(self) -> None:
         """Run when entity is added to Home Assistant."""
+        await super().async_added_to_hass()
         self.async_on_remove(
             async_dispatcher_connect(
                 self.hass, self._status_updated_signal, self.async_write_ha_state
             )
         )
+        await self._restore_selected_sensor()
     
     def get_all_temperature_sensors(self, hass: HomeAssistant) -> dict:
         """Return all available temperature sensors with a None option."""
@@ -76,8 +80,10 @@ class ExternalTemperatureSensorSelect(SelectEntity):
     def current_option(self) -> str | None:
         """Return the current selected option."""
         option = self._device.get_external_temperature_sensor()
+        if option is None:
+            return self._options.get("none")
         if option and option in self._options:
-            return self._options.get(option)    
+            return self._options.get(option)
         return None
 
     async def async_select_option(self, option: str) -> None:
@@ -85,21 +91,66 @@ class ExternalTemperatureSensorSelect(SelectEntity):
         for key, value in self._options.items():
             if value == option:
                 if key == "none":
-                    # Handle the None option
                     await self._device.set_external_temperature_sensor(None)
-                    # Skip setting the temperature value since there's no sensor
                 else:
                     await self._device.set_external_temperature_sensor(key)
-                    tempState = self._hass.states.get(key)
-                    if tempState and tempState.state not in ('unknown', 'unavailable'):
-                        try:
-                            tempValue = float(tempState.state)
-                            await self._device.submit_external_temperature(tempValue)
-                        except (ValueError, TypeError):
-                            # Handle case where the state isn't a valid number
-                            pass
+                    await self._submit_external_temperature_from_sensor(key)
                 self.async_write_ha_state()
                 return
+
+    @property
+    def extra_state_attributes(self) -> dict[str, str]:
+        """Return the selected temperature sensor entity id for state restore."""
+        selected_entity_id = self._device.get_external_temperature_sensor() or "none"
+        return {ATTR_SELECTED_ENTITY_ID: selected_entity_id}
+
+    async def _restore_selected_sensor(self) -> None:
+        """Restore selected external sensor across Home Assistant restarts."""
+        last_state = await self.async_get_last_state()
+        if not last_state:
+            return
+
+        restored_entity_id = last_state.attributes.get(ATTR_SELECTED_ENTITY_ID)
+        if restored_entity_id is None:
+            if last_state.state == self._options.get("none"):
+                restored_entity_id = "none"
+            else:
+                for key, value in self._options.items():
+                    if value == last_state.state:
+                        restored_entity_id = key
+                        break
+
+        if restored_entity_id == "none":
+            await self._device.set_external_temperature_sensor(None)
+            return
+
+        if isinstance(restored_entity_id, str):
+            await self._device.set_external_temperature_sensor(restored_entity_id)
+            await self._submit_external_temperature_from_sensor(restored_entity_id)
+
+    async def _submit_external_temperature_from_sensor(self, sensor_entity_id: str) -> None:
+        """Submit current selected sensor temperature to the heater."""
+        temp_state = self._hass.states.get(sensor_entity_id)
+        if not temp_state:
+            _LOGGER.debug("Temperature entity %s not found", sensor_entity_id)
+            return
+        if temp_state.state in ("unknown", "unavailable"):
+            _LOGGER.debug(
+                "Temperature entity %s has non-numeric state %s",
+                sensor_entity_id,
+                temp_state.state,
+            )
+            return
+        try:
+            temp_value = float(temp_state.state)
+        except (ValueError, TypeError):
+            _LOGGER.debug(
+                "Temperature entity %s has invalid numeric value %s",
+                sensor_entity_id,
+                temp_state.state,
+            )
+            return
+        await self._device.submit_external_temperature(temp_value)
 
 class AutotermSelect(SelectEntity):
     """Representation of an Autoterm select entity."""
