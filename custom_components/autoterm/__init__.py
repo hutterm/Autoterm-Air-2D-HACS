@@ -81,44 +81,82 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     # }
     hass.data[DOMAIN][entry.entry_id] = device
 
-    # if temp_entity_id:
+    async def _resubmit_cached_external_temperature(
+        current_device: AutotermDevice, temp_entity_id: str, reason: str
+    ) -> None:
+        """Resubmit the last known valid external temperature if available."""
+        if await current_device.submit_cached_external_temperature():
+            _LOGGER.debug(
+                "Resubmitted cached external temperature because %s for %s",
+                reason,
+                temp_entity_id,
+            )
+
     async def periodic_temp_update(now=None):
         """Update the temperature periodically."""
-        device = hass.data[DOMAIN][entry.entry_id]
-        temp_entity_id = device.get_external_temperature_sensor()
-        
-        _LOGGER.info(f"Updating heater with temperature from {temp_entity_id}")
-        if temp_entity_id:
-            temp_state = hass.states.get(temp_entity_id)
-            if temp_state:
-                try:
-                    temp_value = float(temp_state.state)
-                    await device.submit_external_temperature(temp_value)
-                    _LOGGER.info(f"Updated heater with temperature {temp_value} from {temp_entity_id}")
-                except (ValueError, TypeError):
-                    _LOGGER.error(f"Invalid temperature value from {temp_entity_id}: {temp_state.state}")
-            else:
-                _LOGGER.error(f"Temperature entity {temp_entity_id} not found")
-        
-    
+        current_device: AutotermDevice = hass.data[DOMAIN][entry.entry_id]
+        temp_entity_id = current_device.get_external_temperature_sensor()
+        if not temp_entity_id:
+            return
+
+        temp_state = hass.states.get(temp_entity_id)
+        if not temp_state:
+            _LOGGER.debug("Temperature entity %s not found", temp_entity_id)
+            await _resubmit_cached_external_temperature(
+                current_device, temp_entity_id, "sensor entity was not found"
+            )
+            return
+
+        if temp_state.state in ("unknown", "unavailable"):
+            _LOGGER.debug(
+                "Temperature entity %s has non-numeric state %s",
+                temp_entity_id,
+                temp_state.state,
+            )
+            await _resubmit_cached_external_temperature(
+                current_device,
+                temp_entity_id,
+                f"state is {temp_state.state}",
+            )
+            return
+
+        try:
+            temp_value = float(temp_state.state)
+        except (ValueError, TypeError):
+            _LOGGER.debug(
+                "Temperature entity %s has invalid numeric value %s",
+                temp_entity_id,
+                temp_state.state,
+            )
+            await _resubmit_cached_external_temperature(
+                current_device,
+                temp_entity_id,
+                "state is not numeric",
+            )
+            return
+
+        await current_device.submit_external_temperature(temp_value)
+        _LOGGER.debug(
+            "Updated heater with temperature %.2f from %s",
+            temp_value,
+            temp_entity_id,
+        )
+
+    await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
+    entry.async_on_unload(entry.add_update_listener(update_listener))
+
     # Update initially
     await periodic_temp_update()
-    
+
     # Schedule updates every 60 seconds (adjust as needed)
     entry.async_on_unload(
         async_track_time_interval(
-            hass, 
-            periodic_temp_update, 
+            hass,
+            periodic_temp_update,
             timedelta(seconds=60)
         )
     )
 
-
-    await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
-
-    entry.async_on_unload(entry.add_update_listener(update_listener))
-    
- 
 
     # Set up periodic status polling
     async def periodic_status_poll(now=None):

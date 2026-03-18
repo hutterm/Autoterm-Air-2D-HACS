@@ -465,6 +465,24 @@ class AutotermDevice:
         )
         await self.set_temperature_current(heater_value)
         self._notify_state_update("controller_temp")
+
+    async def submit_cached_external_temperature(self) -> bool:
+        """Resubmit the last known external temperature if available."""
+        if self.external_temperature_current is None:
+            return False
+        await self.submit_external_temperature(self.external_temperature_current)
+        return True
+
+    def set_external_temperature_current(self, value: float | None) -> None:
+        """Set cached external temperature without sending it to the heater."""
+        self.external_temperature_current = (
+            round(value, 1) if value is not None else None
+        )
+        self._notify_state_update("controller_temp")
+
+    def get_external_temperature_current(self) -> float | None:
+        """Return cached external temperature used for fallback submissions."""
+        return self.external_temperature_current
         
     def set_work_time_indefinite(self) -> None:
         """Set the work time to indefinite."""

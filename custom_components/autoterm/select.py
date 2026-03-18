@@ -15,6 +15,7 @@ from .device import SIGNAL_STATE_UPDATED, AutotermDevice
 
 _LOGGER = logging.getLogger(__name__)
 ATTR_SELECTED_ENTITY_ID = "selected_entity_id"
+ATTR_LAST_VALID_TEMPERATURE = "last_valid_temperature"
 
 SELECT_TYPES = {
     "sensor": ("Temperature Sensor", SENSOR_OPTIONS),
@@ -47,7 +48,8 @@ class ExternalTemperatureSensorSelect(SelectEntity, RestoreEntity):
             "identifiers": {(DOMAIN, entry_id)},
         }
         self._hass = hass
-        self._options = self.get_all_temperature_sensors(hass)
+        self._options = {}
+        self._refresh_options()
         self._status_updated_signal = SIGNAL_STATE_UPDATED.format(f"{entry_id}_external_temperature_sensor")
 
     async def async_added_to_hass(self) -> None:
@@ -59,7 +61,16 @@ class ExternalTemperatureSensorSelect(SelectEntity, RestoreEntity):
             )
         )
         await self._restore_selected_sensor()
-    
+
+    def _refresh_options(self) -> None:
+        """Refresh options and keep the currently selected sensor selectable."""
+        options = self.get_all_temperature_sensors(self._hass)
+        selected_sensor = self._device.get_external_temperature_sensor()
+        if selected_sensor and selected_sensor not in options:
+            selected_state = self._hass.states.get(selected_sensor)
+            options[selected_sensor] = selected_state.name if selected_state else selected_sensor
+        self._options = options
+
     def get_all_temperature_sensors(self, hass: HomeAssistant) -> dict:
         """Return all available temperature sensors with a None option."""
         entities = hass.states.async_all("sensor")
@@ -68,17 +79,17 @@ class ExternalTemperatureSensorSelect(SelectEntity, RestoreEntity):
             if entity.attributes.get("device_class") == "temperature":
                 sensors[entity.entity_id] = entity.name
         return sensors
-    
+
     @property
     def options(self) -> list[str]:
         """Return a set of available options."""
-        # Refresh available sensors each time options are requested
-        self._options = self.get_all_temperature_sensors(self._hass)
+        self._refresh_options()
         return list(self._options.values())
 
     @property
     def current_option(self) -> str | None:
         """Return the current selected option."""
+        self._refresh_options()
         option = self._device.get_external_temperature_sensor()
         if option is None:
             return self._options.get("none")
@@ -88,6 +99,7 @@ class ExternalTemperatureSensorSelect(SelectEntity, RestoreEntity):
 
     async def async_select_option(self, option: str) -> None:
         """Change the selected option."""
+        self._refresh_options()
         for key, value in self._options.items():
             if value == option:
                 if key == "none":
@@ -99,16 +111,33 @@ class ExternalTemperatureSensorSelect(SelectEntity, RestoreEntity):
                 return
 
     @property
-    def extra_state_attributes(self) -> dict[str, str]:
+    def extra_state_attributes(self) -> dict[str, str | float]:
         """Return the selected temperature sensor entity id for state restore."""
         selected_entity_id = self._device.get_external_temperature_sensor() or "none"
-        return {ATTR_SELECTED_ENTITY_ID: selected_entity_id}
+        attributes: dict[str, str | float] = {
+            ATTR_SELECTED_ENTITY_ID: selected_entity_id
+        }
+        cached_temperature = self._device.get_external_temperature_current()
+        if cached_temperature is not None:
+            attributes[ATTR_LAST_VALID_TEMPERATURE] = cached_temperature
+        return attributes
 
     async def _restore_selected_sensor(self) -> None:
         """Restore selected external sensor across Home Assistant restarts."""
+        self._refresh_options()
         last_state = await self.async_get_last_state()
         if not last_state:
             return
+
+        restored_temperature = last_state.attributes.get(ATTR_LAST_VALID_TEMPERATURE)
+        if restored_temperature is not None:
+            try:
+                self._device.set_external_temperature_current(float(restored_temperature))
+            except (TypeError, ValueError):
+                _LOGGER.debug(
+                    "Could not restore cached external temperature value %s",
+                    restored_temperature,
+                )
 
         restored_entity_id = last_state.attributes.get(ATTR_SELECTED_ENTITY_ID)
         if restored_entity_id is None:
@@ -133,6 +162,11 @@ class ExternalTemperatureSensorSelect(SelectEntity, RestoreEntity):
         temp_state = self._hass.states.get(sensor_entity_id)
         if not temp_state:
             _LOGGER.debug("Temperature entity %s not found", sensor_entity_id)
+            if await self._device.submit_cached_external_temperature():
+                _LOGGER.debug(
+                    "Resubmitted cached external temperature after missing sensor %s",
+                    sensor_entity_id,
+                )
             return
         if temp_state.state in ("unknown", "unavailable"):
             _LOGGER.debug(
@@ -140,6 +174,12 @@ class ExternalTemperatureSensorSelect(SelectEntity, RestoreEntity):
                 sensor_entity_id,
                 temp_state.state,
             )
+            if await self._device.submit_cached_external_temperature():
+                _LOGGER.debug(
+                    "Resubmitted cached external temperature because %s is %s",
+                    sensor_entity_id,
+                    temp_state.state,
+                )
             return
         try:
             temp_value = float(temp_state.state)
@@ -149,6 +189,11 @@ class ExternalTemperatureSensorSelect(SelectEntity, RestoreEntity):
                 sensor_entity_id,
                 temp_state.state,
             )
+            if await self._device.submit_cached_external_temperature():
+                _LOGGER.debug(
+                    "Resubmitted cached external temperature due to invalid value from %s",
+                    sensor_entity_id,
+                )
             return
         await self._device.submit_external_temperature(temp_value)
 
